@@ -6,7 +6,7 @@
 
 *The least patriotic Georgian rice*
 
-**A Georgian desktop shell for Hyprland, built on Quickshell and packaged for NixOS.**
+**A Georgian desktop shell (Hyprland rice and dotfiles) for NixOS, built on Quickshell and packaged as a Nix flake.**
 
 [ქართული](README.md) · **English**
 
