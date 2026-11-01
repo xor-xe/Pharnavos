@@ -124,14 +124,18 @@ PanelWindow {
         anchors { right: parent.right; rightMargin: parent.width - hz.cx + hz.wing; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
         spacing: -1
         Text { anchors.right: parent.right; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 20 } }
-        Text {
-          id: line2
-          anchors.right: parent.right
-          readonly property string full: [hz.word, hz.dateText].filter(s => s).join(" · ")
-          // still too narrow: the part of the day alone (24 h: the short date)
-          text: lineM.width <= hz.room ? full : hz.word || root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
-          TextMetrics { id: lineM; font: line2.font; text: line2.full }
-          color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 }
+        // part of the day in its rosé red (as on one line) · date; still too narrow: one of them
+        Row {
+          anchors.right: parent.right; spacing: 5
+          readonly property bool both: line2M.width <= hz.room
+          TextMetrics { id: line2M; font { family: Theme.label; pixelSize: 12 } text: [hz.word, hz.dateText].filter(s => s).join(" · ") }
+          Text { visible: hz.word !== ""; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 12 } }
+          Text { visible: hz.word !== "" && parent.both; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 11; bold: true } }
+          Text {
+            visible: hz.word === "" || parent.both
+            text: parent.both ? hz.dateText : root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
+            color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 }
+          }
         }
       }
 

@@ -155,7 +155,11 @@ PanelWindow {
   // ---- the panel -------------------------------------------------------------------------
   // short screens: the whole panel shrinks to fit (down to 68%) instead of hiding its bottom;
   // below that it scrolls
-  readonly property real fit: Math.max(0.68, Math.min(1, (height - 52) / Math.max(1, body.height)))
+  // the Control tab sets the panel's size: the other tabs never make it taller (they scroll inside
+  // it instead), and every tab shrinks by the same amount
+  property real mainH: 0
+  readonly property real sizeH: mainH > 0 ? Math.min(body.height, mainH) : body.height
+  readonly property real fit: Math.max(0.68, Math.min(1, (height - 52) / Math.max(1, mainH || body.height)))
   ShaderEffect {
     transform: Scale { origin.x: cc.width - panel.x; xScale: cc.fit; yScale: cc.fit }   // origin is local: the surface's right edge
     x: panel.x; y: 0; width: panel.width; height: panel.height
@@ -214,12 +218,13 @@ PanelWindow {
       Flickable {
         id: bodyFlick
         x: 22; y: 22; width: parent.width - 44
-        height: Math.min(body.height, (cc.height - 52) / cc.fit)
+        height: Math.min(cc.sizeH, (cc.height - 52) / cc.fit)
         contentHeight: body.height; clip: true
         interactive: contentHeight > height
         boundsBehavior: Flickable.StopAtBounds
       Column {
         id: body
+        onHeightChanged: if (cc.tab === "main") cc.mainH = height
         width: bodyFlick.width; spacing: 14
 
         // header
