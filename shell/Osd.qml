@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Wayland
@@ -34,13 +35,15 @@ PanelWindow {
   Behavior on slide { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
   Timer { id: hide; interval: 2400; onTriggered: osd.slide = 0 }
   property string mode: "vol"
-  function show(m) { if (!armed) return; mode = m ?? "vol"; slide = 1; hide.restart() }
+  // one pop-up, on the focused screen (every screen has an Osd)
+  readonly property bool here: (Hyprland.focusedMonitor?.name ?? screen?.name) === screen?.name
+  function show(m) { if (!armed || !here) return; mode = m ?? "vol"; slide = 1; hide.restart() }
 
   // brightness: set by whoever changes it (ddcutil wrapper / keybind) via `ipc call osd brightness N`
   property real bri: 0.7
-  IpcHandler {
-    target: "osd"
-    function brightness(v: int): void {
+  Connections {
+    target: Rice
+    function onBrightness(v) {
       // popping up: jump to the new level (no glide from wherever it was last time); open: glide to it
       const f = Math.max(0, Math.min(100, v)) / 100;
       glide.enabled = osd.slide > 0 && osd.mode === "bri";

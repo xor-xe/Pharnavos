@@ -186,7 +186,12 @@ PanelWindow {
 
   Rectangle {
     id: panel
-    x: (parent.width - width) / 2; y: 104 - 24 * (1 - lw.shown)
+    // short screens: closer to the bar, and shrunk (down to 75%) so the bottom never leaves the screen
+    readonly property real gap: Math.min(104, Math.max(56, lw.height - height - 24))
+    readonly property real fit: Math.max(0.75, Math.min(1, (lw.height - gap - 16) / height))
+    transformOrigin: Item.Top
+    scale: fit
+    x: (parent.width - width) / 2; y: gap - 24 * (1 - lw.shown)
     width: 960; height: col.implicitHeight + 40
     opacity: lw.shown
     color: "#0B090A"; radius: 6

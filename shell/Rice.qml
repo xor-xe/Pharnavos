@@ -105,6 +105,13 @@ Singleton {
     function toggle(): void { if (!root.launcherOpen) root.onFocused(); root.launcherOpen = !root.launcherOpen }
     function open(text: string): void { root.launcherOpen = false; root.onFocused(); root.launcherText = text; root.launcherOpen = true }
   }
+  // brightness pop-up: `pharnavos ipc call osd brightness N` from whatever changed it (one handler for
+  // all screens; the focused screen shows it)
+  signal brightness(int v)
+  IpcHandler {
+    target: "osd"
+    function brightness(v: int): void { root.brightness(v) }
+  }
   // Super+W / Super+Shift+W: next / previous wallpaper (every screen's Wallpaper listens)
   signal wallStep(int dir)
   IpcHandler {
