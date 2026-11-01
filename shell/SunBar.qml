@@ -26,6 +26,8 @@ PanelWindow {
   color: "transparent"
   mask: Region { item: barBg; Region { item: pops } }
 
+  // small screens: the status pill and workspaces sit tighter, to leave the song some room
+  readonly property bool tight: width < 1800
   readonly property color red: Theme.red
   readonly property color cream: Theme.cream
   readonly property color dim: Theme.dim
@@ -107,7 +109,8 @@ PanelWindow {
       readonly property real wing: 160
       readonly property real room: hz.cx - wing - wsRow.x - wsRow.width - 24
       readonly property string dateText: Theme.days[root.now.getDay()] + " " + root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
-      readonly property string timeText: Theme.time(root.now, Rice.cfg.clockFmt) + (Rice.cfg.clockFmt === "ampm" ? " " + Theme.period(root.now, "ampm") : "")
+      readonly property string timeText: Theme.time(root.now, Rice.cfg.clockFmt)
+      readonly property string ampm: Rice.cfg.clockFmt === "ampm" ? Theme.period(root.now, "ampm") : ""   // after the time, rosé
       readonly property bool oneLine: oneRow.implicitWidth <= room
       Row {
         id: oneRow
@@ -120,25 +123,21 @@ PanelWindow {
         Text { visible: hz.word !== ""; anchors.baseline: hzTimeT.baseline; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 } }
         // same font as the date (BPG has no bold, so white instead of bold makes the time lead)
         Text { anchors.baseline: hzTimeT.baseline; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+        Text { visible: hz.ampm !== ""; anchors.baseline: hzTimeT.baseline; text: hz.ampm; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 } }
       }
       Column {
+        // two lines: the part of the day (rosé) before the time, the date underneath
         visible: !hz.oneLine
         anchors { right: parent.right; rightMargin: parent.width - hz.cx + hz.wing; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
-        spacing: -1
-        Text { anchors.right: parent.right; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 20 } }
-        // part of the day in its rosé red (as on one line) · date; still too narrow: one of them
+        spacing: 1
         Row {
-          anchors.right: parent.right; spacing: 5
-          readonly property bool both: line2M.width <= hz.room
-          TextMetrics { id: line2M; font { family: Theme.label; pixelSize: 12 } text: [hz.word, hz.dateText].filter(s => s).join(" · ") }
-          Text { visible: hz.word !== ""; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 12 } }
-          Text { visible: hz.word !== "" && parent.both; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 11; bold: true } }
-          Text {
-            visible: hz.word === "" || parent.both
-            text: parent.both ? hz.dateText : root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
-            color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 }
-          }
+          anchors.right: parent.right; spacing: 6
+          Text { id: line1T; text: hz.timeText; visible: false; font { family: Theme.labelFor(text); pixelSize: 20 } }   // baseline only
+          Text { visible: hz.word !== ""; anchors.baseline: line1T.baseline; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 13 } }
+          Text { anchors.baseline: line1T.baseline; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 20 } }
+          Text { visible: hz.ampm !== ""; anchors.baseline: line1T.baseline; text: hz.ampm; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 13 } }
         }
+        Text { anchors.right: parent.right; text: hz.dateText; color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 } }
       }
 
       // the half-sunk sun: black gap ring, red rim, spinning collage Borjgali
@@ -162,25 +161,41 @@ PanelWindow {
         }
       }
 
-      // the song: a note mark, then the title in its own clipped slot (the mark never scrolls),
-      // as wide as the room up to the status icons allows; too long a title scrolls slowly.
-      // No room for a title (small screens): the mark alone, the title on hover
+      // the song, in a pill like the status ones: a note, then the title scrolling in its own clipped slot
+      // (the note never scrolls). Too little room for a title (screens under ~1300 px): the note and a
+      // small equaliser moving with the music, the title on hover
       MouseArea {
         id: songBox
         hoverEnabled: true
         onContainsMouseChanged: root.tipFor(this, containsMouse && !slot.visible)
-        readonly property real room: statusRow.x - 16 - x
+        readonly property real room: statusRow.x - 10 - x
         readonly property string title: [root.player?.trackArtist, root.player?.trackTitle].filter(s => s).join(" — ")
-        visible: root.playing && room >= 24
-        x: hz.cx + hz.wing; height: parent.height; width: room >= 120 ? Math.min(340, room) : 24
+        visible: root.playing && room >= 56
+        x: hz.cx + 148; anchors.verticalCenter: parent.verticalCenter
+        width: Math.min(room, slot.visible ? 42 + songM.advanceWidth + 4 : 64, 380); height: 38
+        Rectangle { anchors.fill: parent; radius: 19; color: "#0E0B0D"; border.color: "#3A2E33" }
         Shape {
-          anchors.verticalCenter: parent.verticalCenter; width: 14; height: 16; preferredRendererType: Shape.CurveRenderer
+          x: 12; anchors.verticalCenter: parent.verticalCenter; width: 14; height: 16; preferredRendererType: Shape.CurveRenderer
           ShapePath { fillColor: root.red; strokeWidth: 0; strokeColor: "transparent"; PathSvg { path: "M5 2 L14 0 L14 11 A2.6 2.6 0 1 1 12 8.6 L12 3 L7 4 L7 13 A2.6 2.6 0 1 1 5 10.6 Z" } }
+        }
+        // equaliser: four bars from cava's bands
+        Row {
+          visible: !slot.visible
+          x: 32; anchors.verticalCenter: parent.verticalCenter; spacing: 2; height: 14
+          Repeater {
+            model: [1, 4, 8, 13]
+            Rectangle {
+              required property int modelData
+              anchors.bottom: parent.bottom
+              width: 3; radius: 1; color: root.red
+              height: Math.max(3, Math.min(14, (root.bands[modelData] ?? 0) * 0.16))
+            }
+          }
         }
         Item {
           id: slot
-          visible: songBox.room >= 120
-          x: 24; width: parent.width - 24; height: parent.height; clip: true
+          visible: songBox.room >= 96
+          x: 34; width: parent.width - 34 - 12; height: parent.height; clip: true
           readonly property bool long: songM.advanceWidth > width
           property real shift: 0
           onLongChanged: shift = 0
@@ -203,6 +218,15 @@ PanelWindow {
             }
           }
           TextMetrics { id: songM; font { family: Theme.headFor(songBox.title); pixelSize: 16 } text: songBox.title }
+          // the title fades in and out at the slot's ends while it scrolls
+          Rectangle {
+            visible: slot.long; width: 10; height: parent.height
+            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: "#0E0B0D" } GradientStop { position: 1; color: "#000E0B0D" } }
+          }
+          Rectangle {
+            visible: slot.long; anchors.right: parent.right; width: 14; height: parent.height
+            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: "#000E0B0D" } GradientStop { position: 1; color: "#0E0B0D" } }
+          }
         }
       }
     }
@@ -211,7 +235,7 @@ PanelWindow {
     Row {
       id: wsRow
       // narrow screens: the diamonds sit closer so the clock has room
-      readonly property bool tight: root.width < 1800
+      readonly property bool tight: root.tight
       x: 14; anchors.verticalCenter: parent.verticalCenter; spacing: tight ? 2 : 8
       Repeater {
         model: 9
@@ -251,11 +275,12 @@ PanelWindow {
           }
         }
       }
-      Item { width: 8; height: 1 }
+      Item { width: root.tight ? 2 : 8; height: 1 }
       // two pills as tall as the jars: what you click, then what you read (battery, CPU, memory)
       Pill {
+        pad: root.tight ? 5 : 8
       MouseArea {
-        width: 44; height: 34
+        width: root.tight ? 40 : 44; height: 34
         onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])   // a hyprctl command, not a dispatcher: same in both config types
         Rectangle {
           anchors.centerIn: parent; width: 40; height: 26; radius: 13
@@ -293,7 +318,7 @@ PanelWindow {
         Rectangle { visible: btBtn.devs.length > 0; x: 22; y: 6; width: 7; height: 7; radius: 3.5; color: root.red }
       }
       IconBtn {
-        width: 64
+        width: root.tight ? 56 : 64
         onContainsMouseChanged: pops.hover("sound", this, containsMouse)
         on: !(root.sink?.audio.muted ?? true)
         onClicked: if (root.sink) root.sink.audio.muted = !root.sink.audio.muted
@@ -324,6 +349,7 @@ PanelWindow {
       }
       Item { width: 6; height: 1 }
       Pill {
+        id: jarPill
         glow: true; spacing: 9; pad: 13
       // battery (laptops only): one more qvevri, its wine the charge with the percentage written on it;
       // hot red and throbbing when low, a slow breath while charging; hover says what it is
@@ -334,7 +360,7 @@ PanelWindow {
         readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge
         visible: !!dev && dev.ready && dev.isLaptopBattery && dev.isPresent
         width: visible ? 19 : 0; height: 34; hoverEnabled: true
-        onContainsMouseChanged: pops.hover("jars", this, containsMouse)
+        onContainsMouseChanged: pops.hover("jars", jarPill, containsMouse)
         Qvevri {
           anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
@@ -348,7 +374,7 @@ PanelWindow {
       MouseArea {
         id: loadHit
         width: loadRow.width; height: 34; hoverEnabled: true
-        onContainsMouseChanged: pops.hover("jars", this, containsMouse)
+        onContainsMouseChanged: pops.hover("jars", jarPill, containsMouse)
         Row {
           id: loadRow
           anchors.centerIn: parent; spacing: 10
