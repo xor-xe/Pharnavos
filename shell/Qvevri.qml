@@ -70,11 +70,12 @@ Item {
     Stamp { ink: "#070607"; y: 6.6 - (q.height - parent.height) }
   }
 
-  // the letter, written across the belly; outlined so it reads over clay and wine alike
+  // the letter, written across the belly; drawn as curves so it stays sharp when the jar is scaled
   Text {
     visible: q.label !== ""
     anchors.horizontalCenter: parent.horizontalCenter; y: 6.6
-    text: q.label; color: "#FFFFFF"; style: Text.Outline; styleColor: "#070607"
+    renderType: Text.CurveRendering
+    text: q.label; color: "#FFFFFF"
     font { family: Theme.labelFor(text); pixelSize: 10 }
   }
 
