@@ -30,7 +30,16 @@ PanelWindow {
 
   // ---- show on change (not on startup) --------------------------------------------------
   property bool armed: false
-  Timer { running: true; interval: 1500; onTriggered: osd.armed = true }
+  Timer { id: arm; running: true; interval: 1500; onTriggered: osd.armed = true }
+  // a new sink (wake, monitor back from sleep, device plugged in) settles quietly
+  onSinkChanged: { armed = false; arm.restart() }
+  property real lastVol: vol
+  property bool lastMuted: muted
+  function volMoved() {
+    const moved = Math.abs(vol - lastVol) > 0.004 || muted !== lastMuted;
+    lastVol = vol; lastMuted = muted;
+    if (moved && sink?.ready) show("vol")
+  }
   property real slide: 0
   Behavior on slide { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
   Timer { id: hide; interval: 2400; onTriggered: osd.slide = 0 }
@@ -52,8 +61,8 @@ PanelWindow {
   }
   Connections {
     target: osd.sink?.audio ?? null
-    function onVolumeChanged() { osd.show("vol") }
-    function onMutedChanged() { osd.show("vol") }
+    function onVolumeChanged() { osd.volMoved() }
+    function onMutedChanged() { osd.volMoved() }
   }
 
   // ---- the signal ------------------------------------------------------------------------
