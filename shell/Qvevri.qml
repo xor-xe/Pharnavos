@@ -25,9 +25,12 @@ Item {
   // outline in a 16×24 box
   readonly property string path: "M6 0 L10 0 L10.5 1.3 L9.7 2.3 C13 3.1 16 5.6 16 9.2 C16 14.2 11.6 20 8.7 23.5 Q8 24.3 7.3 23.5 C4.4 20 0 14.2 0 9.2 C0 5.6 3 3.1 6.3 2.3 L5.5 1.3 Z"
 
+  property bool glow: false       // a soft red glow along the outline
   Shape {
     anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
-    ShapePath { fillColor: "#211B1D"; strokeColor: "#6A5A5E"; strokeWidth: 0.9; PathSvg { path: q.path } }
+    ShapePath { fillColor: "#211B1D"; strokeColor: q.alarm ? q.hot : q.glow ? "#C0454F" : "#6A5A5E"; strokeWidth: 0.9; PathSvg { path: q.path } }
+    layer.enabled: q.glow || q.alarm
+    layer.effect: MultiEffect { shadowEnabled: true; shadowColor: q.hot; shadowBlur: q.alarm ? 0.9 : 0.5; shadowOpacity: q.alarm ? 1 : 0.6; shadowHorizontalOffset: 0; shadowVerticalOffset: 0 }
   }
   // wine, clipped to the vessel
   Item {

@@ -246,6 +246,8 @@ PanelWindow {
         }
       }
       Item { width: 8; height: 1 }
+      // two pills as tall as the jars: what you click, then what you read (battery, CPU, memory)
+      Pill {
       MouseArea {
         width: 44; height: 34
         onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])   // a hyprctl command, not a dispatcher: same in both config types
@@ -312,6 +314,10 @@ PanelWindow {
         Rectangle { anchors.fill: parent; radius: 17; color: "transparent"; border { width: 1.5; color: root.red } visible: Rice.notifShowAll }
         Rectangle { visible: Rice.notifCount > 0 && !Rice.notifShowAll; x: 21; y: 6; width: 8; height: 8; radius: 4; color: root.red }
       }
+      }
+      Item { width: 6; height: 1 }
+      Pill {
+        glow: true; spacing: 10
       // battery (laptops only): one more qvevri, its wine the charge with the percentage written on it;
       // hot red and throbbing when low, a slow breath while charging; hover says what it is
       MouseArea {
@@ -320,11 +326,12 @@ PanelWindow {
         readonly property real pct: Math.round(dev ? (dev.percentage > 1 ? dev.percentage : dev.percentage * 100) : 0)
         readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge
         visible: !!dev && dev.ready && dev.isLaptopBattery && dev.isPresent
-        width: visible ? 36 : 0; height: 40; hoverEnabled: true
+        width: visible ? 22 : 0; height: 34; hoverEnabled: true
         onContainsMouseChanged: root.tipFor(this, containsMouse)
         Qvevri {
-          anchors.centerIn: parent; scale: 1.5
-          level: batHit.pct; label: String(batHit.pct); wine: "#B0151F"
+          anchors.centerIn: parent; scale: 1.25; glow: true
+          // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
+          level: batHit.pct; label: String(batHit.pct); wine: "#E0607E"
           alarm: batHit.pct <= 15 && !batHit.charging
           pulse: alarm
           SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
@@ -333,11 +340,11 @@ PanelWindow {
       // load as two qvevri: wine rises with CPU (red) and RAM (cream); hover for numbers
       MouseArea {
         id: loadHit
-        width: loadRow.width + 12; height: 40; hoverEnabled: true
+        width: loadRow.width; height: 34; hoverEnabled: true
         onContainsMouseChanged: root.tipFor(this, containsMouse)
         Row {
           id: loadRow
-          anchors.centerIn: parent; spacing: 12
+          anchors.centerIn: parent; spacing: 10
           Repeater {
             // a chip and a memory stick stamped into the clay
             model: [["M7 7h10v10H7zM10 10h4v4h-4zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4", Sys.cpu, "#B0151F"],
@@ -345,12 +352,14 @@ PanelWindow {
             // the chip / memory-stick icon stamped into each jar
             Item {
               required property var modelData
-              width: 24; height: 36
-              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; icon: parent.modelData[0]; scale: 1.5 }
+              width: 20; height: 30
+              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; icon: parent.modelData[0]; scale: 1.25; glow: true }
             }
           }
         }
       }
+      }
+      Item { width: 4; height: 1 }
       IconBtn {
         // St. Nino's grapevine cross — opens the control centre
         onClicked: { Rice.panelScreen = root.screen.name; Rice.ccOpen = !Rice.ccOpen }
@@ -396,6 +405,23 @@ PanelWindow {
 
 
   // ---- little components ---------------------------------------------------
+  component Pill: Rectangle {
+    default property alias content: pillRow.data
+    property bool glow: false
+    property alias spacing: pillRow.spacing
+    anchors.verticalCenter: parent.verticalCenter
+    width: pillRow.implicitWidth + 16; height: 38; radius: 19
+    color: "#0E0B0D"; border { width: 1; color: glow ? Qt.rgba(1, 42 / 255, 58 / 255, 0.55) : "#3A2E33" }
+    // the glow: a blurred copy of the outline behind the pill
+    Rectangle {
+      visible: parent.glow; z: -1
+      anchors.fill: parent; radius: parent.radius; color: "transparent"; border { width: 2; color: Qt.rgba(1, 42 / 255, 58 / 255, 0.7) }
+      layer.enabled: visible
+      layer.effect: MultiEffect { blurEnabled: true; blur: 0.7; blurMax: 12 }
+    }
+    Row { id: pillRow; anchors.centerIn: parent; spacing: 0 }
+  }
+
   component IconBtn: MouseArea {
     property bool on: true
     readonly property color fg: containsMouse ? "#FFFFFF" : on ? "#C9C1C4" : "#5A4E53"
