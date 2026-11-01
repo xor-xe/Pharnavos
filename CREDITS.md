@@ -20,3 +20,7 @@
 ## Images
 - Vazha-Pshavela portrait stencil, from a historical photograph of Vazha-Pshavela (1861–1915)
 - St. George silhouette, collage Borjgali, drinking horn and sun: made for Pharnavos
+
+## Dance
+- Dance wallpaper: an invented dancer in letter outlines, performing moves after East Duo, *Sio*
+  (music video); Sukhishvili, *Tsdo*; and the Georgian folk dances Chano and Acharuli

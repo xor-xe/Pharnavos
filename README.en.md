@@ -44,7 +44,7 @@
 | **Control centre** | Wi-Fi with password prompt, Bluetooth, sound, calendar, to-do list, power actions, wallpaper and lock-screen settings |
 | **Notifications** | embroidered pop-ups and a notification centre with stacks |
 | **OSD** | volume as a drinking horn (ყანწი) blowing sound waves; brightness as a sun rising over the horizon |
-| **Wallpapers** | Rustaveli's verse along a Borjgali spiral, Vazha-Pshavela's portrait drawn from his poems, and an optional dancer made of flipping letters |
+| **Wallpapers** | Rustaveli's verse along a Borjgali spiral, Vazha-Pshavela's portrait drawn from his poems, and a dancer made of flipping letters |
 | **Lock screens** | St. George, the five-cross flag or a turning Borjgali, all in flipping Georgian letters |
 | **Close effect** | windows fall apart into Georgian letters when they close |
 
@@ -255,7 +255,7 @@ programs.pharnavos = {
   fonts.heading = ./my-font.ttf;   # your own fonts (default FiraGO / BPG Excelsior Caps)
   fonts.label = null;
   powerProfiles = true;            # power gauge on the bar (also a NixOS option: power-profiles-daemon)
-  wallpaper.dance = null;          # a folder with dance.png + dance.json: adds the Dance wallpaper
+  wallpaper.dance = null;          # your own dance frames (dance.png + dance.json); null = the shipped dance
   hyprland.enable = true;          # keybinds, window look, layer rule, lock-crash recovery
   hyprland.launcherKey = "SUPER, R";
   hyprland.wallpaperKey = "SUPER, W";   # with Shift: the previous wallpaper

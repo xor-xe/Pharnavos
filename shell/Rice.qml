@@ -38,7 +38,8 @@ Singleton {
   // set by the home-manager module (PHARNAVOS_* env); the in-app settings file wins where it has a value
   readonly property string lang: cfg.lang || Quickshell.env("PHARNAVOS_LANG") || "ka"
   // programs.pharnavos.wallpaper.dance: a directory with dance.png + dance.json (a dancer's line art)
-  readonly property string danceDir: Quickshell.env("PHARNAVOS_DANCE") || ""
+  // the Dance wallpaper's frames: your own (programs.pharnavos.wallpaper.dance) or the shipped ones
+  readonly property string danceDir: Quickshell.env("PHARNAVOS_DANCE") || Quickshell.shellDir + "/assets/dance"
   // every UI string is written t("ქართული", "English"); the art (poems, letter rain) stays Georgian
   function t(ka, en) { return lang === "en" ? en : ka }
   readonly property string name: cfg.name || Quickshell.env("PHARNAVOS_NAME") || Quickshell.env("USER")

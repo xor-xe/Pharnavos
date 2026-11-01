@@ -163,10 +163,9 @@ in
       default = null;
       example = lib.literalExpression "./dance";
       description = ''
-        Adds a Dance wallpaper: Georgian letters flipping on the lines of a dancer, frame by frame.
-        A directory with `dance.png` (one tile per frame, white = line, on a grid of letter cells) and
-        `dance.json` (`frames`, `cols`, `rows`, `perRow`, `fps`). Make your own from a video; keep
-        footage you don't own the rights to out of public repositories.
+        Your own frames for the Dance wallpaper (Georgian letters flipping on the lines of a dancer);
+        null = the shipped dance. A directory with `dance.png` (one tile per frame, white = line, on a
+        grid of letter cells) and `dance.json` (`frames`, `cols`, `rows`, `perRow`, `fps`).
       '';
     };
 
