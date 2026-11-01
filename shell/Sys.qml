@@ -17,6 +17,9 @@ Singleton {
   property real rxRate: 0           // bytes/s on the default route's interface
   property real txRate: 0
   property string iface: ""
+  // the last minute of traffic (30 readings, 2 s apart) for the Wi-Fi popup's graph: just numbers
+  property var rxHist: Array(30).fill(0)
+  property var txHist: Array(30).fill(0)
 
   property var prev: [0, 0]
   FileView {
@@ -34,7 +37,7 @@ Singleton {
       const kb = k => Number(text().match(new RegExp("^" + k + ":\\s+(\\d+)", "m"))[1]);
       const total = kb("MemTotal"), used = total - kb("MemAvailable");
       root.ram = Math.round(100 * used / total);
-      root.ramUsedG = Math.round(used / 1048576); root.ramTotalG = Math.round(total / 1048576);
+      root.ramUsedG = Math.round(used / 104857.6) / 10; root.ramTotalG = Math.round(total / 104857.6) / 10;
     }
   }
   Process { id: net; command: ["nmcli", "-t", "-f", "STATE", "general"]; stdout: StdioCollector { onStreamFinished: root.online = text.trim().startsWith("connected") } }
@@ -75,10 +78,12 @@ Singleton {
         root.rxRate = Math.max(0, (v[0] - root.prevNet[0]) / dt); root.txRate = Math.max(0, (v[8] - root.prevNet[1]) / dt);
       }
       root.prevNet = [v[0], v[8], now];
+      root.rxHist = root.rxHist.slice(1).concat([root.rxRate]); root.txHist = root.txHist.slice(1).concat([root.txRate]);
     }
   }
   function rate(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + " MB/s" : b >= 1024 ? Math.round(b / 1024) + " KB/s" : Math.round(b) + " B/s" }
 
+  function setProfile(p) { profile = p; ppSet.exec(["powerprofilesctl", "set", p]) }
   function cycleProfile() {
     profile = { "power-saver": "balanced", "balanced": "performance", "performance": "power-saver" }[profile] ?? "balanced";
     ppSet.exec(["powerprofilesctl", "set", profile]);

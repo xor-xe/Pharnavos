@@ -21,10 +21,10 @@ PanelWindow {
   WlrLayershell.namespace: "pharnavos-bar"
   WlrLayershell.layer: Quickshell.env("PHARNAVOS_PREVIEW") ? WlrLayer.Overlay : WlrLayer.Top
   anchors { top: true; left: true; right: true }
-  implicitHeight: 360
+  implicitHeight: 480   // room for the popups under the strip (only the strip and an open popup take input)
   exclusiveZone: 46
   color: "transparent"
-  mask: Region { item: barBg }
+  mask: Region { item: barBg; Region { item: pops } }
 
   readonly property color red: Theme.red
   readonly property color cream: Theme.cream
@@ -67,6 +67,8 @@ PanelWindow {
   Launcher { bar: root }
   Osd { bar: root }
   IdleInhibitor { window: root; enabled: Rice.cfg.awake }
+
+  Popups { id: pops; bar: root; z: 5 }
 
   // ---- bar strip ---------------------------------------------------------
   Rectangle {
@@ -267,7 +269,7 @@ PanelWindow {
         id: netBtn
         readonly property int arcs: !Sys.online ? 0 : Sys.ssid === "" ? 3 : Sys.signal > 66 ? 3 : Sys.signal > 33 ? 2 : 1
         onClicked: Quickshell.execDetached(["nm-connection-editor"])
-        onContainsMouseChanged: root.tipFor(this, containsMouse)
+        onContainsMouseChanged: pops.hover("wifi", this, containsMouse)
         Repeater {
           model: ["M2 8.5a15 15 0 0 1 20 0", "M5 12a10 10 0 0 1 14 0", "M8.5 15.5a5 5 0 0 1 7 0", "M12 19h.01"]
           Icon {
@@ -286,12 +288,13 @@ PanelWindow {
         readonly property var devs: Bluetooth.devices.values.filter(d => d.connected)
         on: Bluetooth.defaultAdapter?.enabled ?? false
         onClicked: Quickshell.execDetached(["blueman-manager"])
-        onContainsMouseChanged: root.tipFor(this, containsMouse)
+        onContainsMouseChanged: pops.hover("bt", this, containsMouse)
         Icon { d: "M7 7l10 10-5 4V3l5 4L7 17"; c: parent.fg }
         Rectangle { visible: btBtn.devs.length > 0; x: 22; y: 6; width: 7; height: 7; radius: 3.5; color: root.red }
       }
       IconBtn {
         width: 64
+        onContainsMouseChanged: pops.hover("sound", this, containsMouse)
         on: !(root.sink?.audio.muted ?? true)
         onClicked: if (root.sink) root.sink.audio.muted = !root.sink.audio.muted
         onWheel: w => { if (root.sink) root.sink.audio.volume = Math.max(0, Math.min(1, root.sink.audio.volume + (w.angleDelta.y > 0 ? 0.05 : -0.05))) }
@@ -303,8 +306,8 @@ PanelWindow {
       IconBtn {
         id: ppBtn
         visible: Rice.power && Sys.powerAvailable   // programs.pharnavos.powerProfiles, and a daemon to talk to
-        onClicked: { Sys.cycleProfile(); root.tipFor(this, true); tipHold.restart() }
-        onContainsMouseChanged: root.tipFor(this, containsMouse || tipHold.running)
+        onClicked: Sys.cycleProfile()
+        onContainsMouseChanged: pops.hover("power", this, containsMouse)
         Icon {
           d: "M4 18a8 8 0 1 1 16 0" + (Sys.profile === "performance" ? "M12 18l5-3" : Sys.profile === "power-saver" ? "M12 18l-5-3" : "M12 18l0-7")
           c: Sys.profile === "performance" ? root.red : parent.fg
@@ -331,7 +334,7 @@ PanelWindow {
         readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge
         visible: !!dev && dev.ready && dev.isLaptopBattery && dev.isPresent
         width: visible ? 19 : 0; height: 34; hoverEnabled: true
-        onContainsMouseChanged: root.tipFor(this, containsMouse)
+        onContainsMouseChanged: pops.hover("jars", this, containsMouse)
         Qvevri {
           anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
@@ -345,7 +348,7 @@ PanelWindow {
       MouseArea {
         id: loadHit
         width: loadRow.width; height: 34; hoverEnabled: true
-        onContainsMouseChanged: root.tipFor(this, containsMouse)
+        onContainsMouseChanged: pops.hover("jars", this, containsMouse)
         Row {
           id: loadRow
           anchors.centerIn: parent; spacing: 10
@@ -376,24 +379,10 @@ PanelWindow {
 
   // one tooltip under whichever status item is hovered (or just clicked, for the power profile)
   property Item tipItem: null
-  function tipFor(item, on) { if (on) root.tipItem = item; else if (root.tipItem === item && !tipHold.running) root.tipItem = null }
-  Timer { id: tipHold; interval: 1600; onTriggered: if (!root.tipItem?.containsMouse) root.tipItem = null }
-  readonly property string tipText: {
-    const t = root.tipItem;
-    if (t === songBox) return songBox.title;
-    // any jar: all three, the battery first (laptops)
-    if (t === batHit || t === loadHit)
-      return (batHit.visible ? Rice.t("ბატარეა", "Battery") + " · " + batHit.pct + "%" + (batHit.charging ? Rice.t(" · იტენება", " · charging") : "") + "\n" : "")
-        + "CPU " + Sys.cpu + "%  ·  RAM " + Sys.ramUsedG + " / " + Sys.ramTotalG + " G";
-    if (t === netBtn) return !Sys.online ? Rice.t("კავშირი არ არის", "Offline")
-      : "↓ " + Sys.rate(Sys.rxRate) + "   ↑ " + Sys.rate(Sys.txRate) + "\n" + (Sys.ssid ? Sys.ssid + " · " + Sys.signal + "%" : Rice.t("სადენიანი", "Wired"));
-    if (t === btBtn) return !btBtn.on ? Rice.t("Bluetooth გამორთულია", "Bluetooth is off")
-      : btBtn.devs.length ? btBtn.devs.map(d => d.name + (d.batteryAvailable ? " · " + Math.round(d.battery * 100) + "%" : "")).join("\n")
-      : Rice.t("მოწყობილობა არ არის", "No device connected");
-    if (t === ppBtn) return ({ "power-saver": Rice.t("ენერგიის დაზოგვა", "Power saver"), "balanced": Rice.t("ბალანსი", "Balanced"),
-                               "performance": Rice.t("მარდად", "Performance") })[Sys.profile] ?? Sys.profile;
-    return "";
-  }
+  function tipFor(item, on) { if (on) root.tipItem = item; else if (root.tipItem === item) root.tipItem = null }
+  // the one tooltip left: the song's title when there's no room to show it (the icons have popups)
+  readonly property string tipText: root.tipItem === songBox ? songBox.title : ""
+
   Rectangle {
     visible: root.tipItem !== null && root.tipText !== ""
     // centred under the item, but kept on screen (they sit near the right edge)
