@@ -377,8 +377,10 @@ PanelWindow {
   readonly property string tipText: {
     const t = root.tipItem;
     if (t === songBox) return songBox.title;
-    if (t === batHit) return Rice.t("ბატარეა", "Battery") + " · " + batHit.pct + "%" + (batHit.charging ? Rice.t(" · იტენება", " · charging") : "");
-    if (t === loadHit) return "CPU " + Sys.cpu + "%  ·  RAM " + Sys.ramUsedG + " / " + Sys.ramTotalG + " G";
+    // any jar: all three, the battery first (laptops)
+    if (t === batHit || t === loadHit)
+      return (batHit.visible ? Rice.t("ბატარეა", "Battery") + " · " + batHit.pct + "%" + (batHit.charging ? Rice.t(" · იტენება", " · charging") : "") + "\n" : "")
+        + "CPU " + Sys.cpu + "%  ·  RAM " + Sys.ramUsedG + " / " + Sys.ramTotalG + " G";
     if (t === netBtn) return !Sys.online ? Rice.t("კავშირი არ არის", "Offline")
       : "↓ " + Sys.rate(Sys.rxRate) + "   ↑ " + Sys.rate(Sys.txRate) + "\n" + (Sys.ssid ? Sys.ssid + " · " + Sys.signal + "%" : Rice.t("სადენიანი", "Wired"));
     if (t === btBtn) return !btBtn.on ? Rice.t("Bluetooth გამორთულია", "Bluetooth is off")
