@@ -252,7 +252,7 @@ programs.pharnavos = {
   language = "ka";                 # "ka" (Georgian, default) or "en"; also switchable in the control centre
   name = "ხორხე";                  # greeting name; default: your login name
   terminal = "foot";               # for the launcher's `>` and terminal apps (must accept -e)
-  fonts.heading = ./my-font.ttf;   # your own fonts (default FiraGO / BPG Excelsior Caps)
+  fonts.heading = ./my-font.ttf;   # your own fonts (default Mkhedruli Grunge / BPG Excelsior Caps)
   fonts.label = null;
   powerProfiles = true;            # power gauge on the bar (also a NixOS option: power-profiles-daemon)
   wallpaper.dance = null;          # your own dance frames (dance.png + dance.json); null = the shipped dance

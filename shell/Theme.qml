@@ -55,7 +55,7 @@ Singleton {
   }
 
   function fontFile(f) { return "file://" + Quickshell.shellDir + "/assets/fonts/" + f }
-  FontLoader { id: brushF; source: Rice.fontHeading ? "file://" + Rice.fontHeading : root.fontFile("firago-heavyitalic.ttf") }  // FiraGO (OFL)
+  FontLoader { id: brushF; source: Rice.fontHeading ? "file://" + Rice.fontHeading : root.fontFile("mkhedruli-grunge-italic.ttf") }  // Mkhedruli Grunge (OFL)
   FontLoader { id: labelF; source: Rice.fontLabel ? "file://" + Rice.fontLabel : root.fontFile("bpg-excelsior-caps.ttf") }    // BPG Excelsior Caps (GPL)
   FontLoader { id: digitsF; source: root.fontFile("anton.ttf") }   // Anton (Google Fonts, OFL)
   FontLoader { id: wallF; source: root.fontFile("minecraft.ttf") }

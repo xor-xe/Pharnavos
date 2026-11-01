@@ -2,7 +2,8 @@
 
 ## Fonts
 - **Anton**, The Anton Project Authors (Vernon Adams), SIL Open Font License 1.1 (`shell/assets/fonts/licenses/Anton-OFL.txt`)
-- **FiraGO**, bBox Type, SIL Open Font License 1.1 (`shell/assets/fonts/licenses/FiraGO-OFL.txt`)
+- **Mkhedruli Grunge**, GGBotNet, SIL Open Font License 1.1, Reserved Font Name "Mkhedruli Grunge"
+  (`shell/assets/fonts/licenses/MkhedruliGrunge-OFL.txt`)
 - **BPG Excelsior Caps**, BPG-InfoTech, GNU GPL v2 (`shell/assets/fonts/licenses/BPG-GPL-2.txt`)
 - **MG Minecraft Georgian**, giomjava, based on "Minecraft" by Pwnage_Block (fontstruct.com),
   Creative Commons Attribution-ShareAlike (`shell/assets/fonts/licenses/MinecraftGeorgian-CC-BY-SA.txt`)

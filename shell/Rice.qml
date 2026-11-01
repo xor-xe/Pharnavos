@@ -84,7 +84,7 @@ Singleton {
       property string clockFmt: "24"       // 24 | ka (12h + დილის/შუადღის/საღამოს/ღამის) | ampm
       property string lang: ""             // ka | en; "" = programs.pharnavos.language (default ka)
       property string name: ""             // greeting name; "" = your login name
-      property string fontHeading: ""      // path to your own .ttf/.otf for headings; "" = FiraGO
+      property string fontHeading: ""      // path to your own .ttf/.otf for headings; "" = Mkhedruli Grunge
       property string fontLabel: ""        // same for labels; "" = BPG Excelsior Caps
       property var todos: []
       property var launches: ({})       // launch counts per desktop entry id (ranks the launcher)

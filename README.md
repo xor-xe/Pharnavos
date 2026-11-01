@@ -253,7 +253,7 @@ programs.pharnavos = {
   language = "ka";                 # "ka" (ქართული, ნაგულისხმევი) ან "en"; მართვის ცენტრშიც იცვლება
   name = "ხორხე";                  # მისალმების სახელი; ნაგულისხმევად შენი მომხმარებლის სახელი
   terminal = "foot";               # გამშვების `>`-ისა და ტერმინალის აპებისთვის (-e უნდა მიიღოს)
-  fonts.heading = ./my-font.ttf;   # შენი შრიფტები (ნაგულისხმევად FiraGO / BPG Excelsior Caps)
+  fonts.heading = ./my-font.ttf;   # შენი შრიფტები (ნაგულისხმევად Mkhedruli Grunge / BPG Excelsior Caps)
   fonts.label = null;
   powerProfiles = true;            # ენერგიის საზომი პანელზე (NixOS-შიც: power-profiles-daemon)
   wallpaper.dance = null;          # შენი ცეკვის კადრები (dance.png + dance.json); null = ჩაშენებული ცეკვა

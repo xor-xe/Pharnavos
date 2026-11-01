@@ -179,7 +179,7 @@ in
       heading = mkOption {
         type = types.nullOr types.path;
         default = null;
-        description = "Your own .ttf/.otf for headings (default: FiraGO Heavy Italic).";
+        description = "Your own .ttf/.otf for headings (default: Mkhedruli Grunge Italic).";
       };
       label = mkOption {
         type = types.nullOr types.path;
