@@ -14,7 +14,8 @@ PanelWindow {
   screen: bar.screen
   WlrLayershell.namespace: "pharnavos-launcher"
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.keyboardFocus: Rice.launcherOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+  readonly property bool here: !Rice.panelScreen || screen?.name === Rice.panelScreen   // the screen it opens on
+  WlrLayershell.keyboardFocus: Rice.launcherOpen && here ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   anchors { top: true; bottom: true; left: true; right: true }
   color: "transparent"
@@ -35,6 +36,7 @@ PanelWindow {
   Connections {
     target: Rice
     function onLauncherOpenChanged() {
+      if (Rice.launcherOpen && !lw.here) return;
       if (Rice.launcherOpen) {
         query.text = Rice.launcherText; Rice.launcherText = ""; lw.sel = 0; lw.aiText = "";
         lw.mapped = true; outA.stop(); inA.start(); sewA.restart();

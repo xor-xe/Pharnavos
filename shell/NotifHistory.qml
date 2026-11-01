@@ -18,7 +18,8 @@ PanelWindow {
   screen: bar.screen
   WlrLayershell.namespace: "pharnavos-notif-history"
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.keyboardFocus: Rice.notifShowAll ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+  readonly property bool here: !Rice.panelScreen || screen?.name === Rice.panelScreen   // the screen it opens on
+  WlrLayershell.keyboardFocus: Rice.notifShowAll && here ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   anchors { top: true; left: true }
   margins { top: 46 }
@@ -32,7 +33,7 @@ PanelWindow {
   readonly property color cream: Theme.cream
   readonly property color grey: "#8C8186"
 
-  HyprlandFocusGrab { windows: [hw, hw.bar]; active: Rice.notifShowAll; onCleared: Rice.notifShowAll = false }
+  HyprlandFocusGrab { windows: [hw, hw.bar]; active: Rice.notifShowAll && hw.here; onCleared: Rice.notifShowAll = false }
 
   // ---- open / close: the same cloth-flag entrance as the control centre ---------------------
   // p = open progress, clk = ripple clock; once the ripple has died out the real panel is shown
@@ -46,6 +47,7 @@ PanelWindow {
   Connections {
     target: Rice
     function onNotifShowAllChanged() {
+      if (Rice.notifShowAll && !hw.here) return;
       if (Rice.notifShowAll) { hw.expanded = ({}); hw.now = Date.now(); hw.mapped = true; outA.stop(); inA.start(); panel.forceActiveFocus() }
       else { inA.stop(); outA.start() }
       clkA.restart();

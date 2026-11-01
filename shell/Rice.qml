@@ -27,6 +27,10 @@ Singleton {
   function dispatch(old, lua) { Hyprland.dispatch(hyprLua ? lua : old) }
   function luaStr(s) { return JSON.stringify(String(s)) }   // a JSON string is a valid Lua string
   property bool ccOpen: false
+  // the screen the panels open on (one Pharnavos per screen): the bar you clicked, or the focused
+  // monitor for keyboard shortcuts; "" = every screen
+  property string panelScreen: ""
+  function onFocused() { panelScreen = Hyprland.focusedMonitor?.name ?? "" }
   property bool launcherOpen: false
   property string launcherText: ""    // prefill, e.g. "=" to open straight into the calculator
   property int stanzaSeq: 0          // bump to make the wallpaper pick a new stanza
@@ -94,12 +98,12 @@ Singleton {
 
   IpcHandler {
     target: "cc"
-    function toggle(): void { root.ccOpen = !root.ccOpen }
+    function toggle(): void { if (!root.ccOpen) root.onFocused(); root.ccOpen = !root.ccOpen }
   }
   IpcHandler {
     target: "launcher"
-    function toggle(): void { root.launcherOpen = !root.launcherOpen }
-    function open(text: string): void { root.launcherOpen = false; root.launcherText = text; root.launcherOpen = true }
+    function toggle(): void { if (!root.launcherOpen) root.onFocused(); root.launcherOpen = !root.launcherOpen }
+    function open(text: string): void { root.launcherOpen = false; root.onFocused(); root.launcherText = text; root.launcherOpen = true }
   }
   // Super+W / Super+Shift+W: next / previous wallpaper (every screen's Wallpaper listens)
   signal wallStep(int dir)
@@ -110,6 +114,6 @@ Singleton {
   }
   IpcHandler {
     target: "notif"
-    function history(): void { root.notifShowAll = !root.notifShowAll }
+    function history(): void { if (!root.notifShowAll) root.onFocused(); root.notifShowAll = !root.notifShowAll }
   }
 }

@@ -103,8 +103,11 @@ PanelWindow {
       Row {
         anchors { right: parent.right; rightMargin: parent.width - hz.cx + 172; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
         spacing: 9
-        // on narrow screens the date would run into the workspaces (they end at ~370 px): drop it
-        readonly property bool roomy: hz.cx - 172 - (hzDateT.implicitWidth + hzDotT.implicitWidth + hzWordT.implicitWidth + hzTimeT.implicitWidth + 36) > 380
+        // narrow screens: what fits between the workspaces and the sun, dropping the date first,
+        // then the part of the day; the time always stays
+        readonly property real room: hz.cx - 172 - wsRow.x - wsRow.width - 24
+        readonly property bool wordFits: hzWordT.implicitWidth + 9 + hzTimeT.implicitWidth <= room
+        readonly property bool roomy: wordFits && hzDateT.implicitWidth + hzDotT.implicitWidth + 18 + hzWordT.implicitWidth + 9 + hzTimeT.implicitWidth <= room
         Text {
           id: hzDateT
           visible: parent.roomy
@@ -116,7 +119,7 @@ PanelWindow {
         Text { id: hzDotT; visible: parent.roomy; anchors.baseline: hzTimeT.baseline; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 15; bold: true } }
         Text {
           id: hzWordT
-          visible: hz.word !== ""
+          visible: hz.word !== "" && parent.wordFits
           anchors.baseline: hzTimeT.baseline
           text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 }
         }
@@ -150,8 +153,10 @@ PanelWindow {
       }
 
       Text {
-        visible: root.playing
-        x: hz.cx + 172; anchors.verticalCenter: parent.verticalCenter; width: 320; elide: Text.ElideRight
+        // the song: as wide as the room up to the status icons allows, hidden when there's too little
+        readonly property real room: statusRow.x - 16 - x
+        visible: root.playing && room >= 90
+        x: hz.cx + 172; anchors.verticalCenter: parent.verticalCenter; width: Math.min(320, room); elide: Text.ElideRight
         // names from players, apps and nearby Wi-Fi are shown as plain text: as rich text, a title like
         // <img src="https://…"> would load from the internet
         textFormat: Text.PlainText
@@ -162,6 +167,7 @@ PanelWindow {
 
     // workspaces: Khevsur cross-stitch diamonds
     Row {
+      id: wsRow
       x: 14; anchors.verticalCenter: parent.verticalCenter; spacing: 8
       Repeater {
         model: 9
@@ -184,6 +190,7 @@ PanelWindow {
     }
 
     Row {
+      id: statusRow
       anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
       spacing: 2
 
@@ -261,7 +268,7 @@ PanelWindow {
       }
       IconBtn {
         on: Rice.notifCount > 0
-        onClicked: Rice.notifShowAll = !Rice.notifShowAll
+        onClicked: { Rice.panelScreen = root.screen.name; Rice.notifShowAll = !Rice.notifShowAll }
         Icon { d: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"; c: parent.fg }
         // open: a red ring (outline kept, never a solid fill)
         Rectangle { anchors.fill: parent; radius: 17; color: "transparent"; border { width: 1.5; color: root.red } visible: Rice.notifShowAll }
@@ -290,7 +297,7 @@ PanelWindow {
       }
       IconBtn {
         // St. Nino's grapevine cross — opens the control centre
-        onClicked: Rice.ccOpen = !Rice.ccOpen
+        onClicked: { Rice.panelScreen = root.screen.name; Rice.ccOpen = !Rice.ccOpen }
         Shape {
           anchors.centerIn: parent; width: 20; height: 26
           preferredRendererType: Shape.CurveRenderer

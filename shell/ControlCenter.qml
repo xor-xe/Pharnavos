@@ -16,7 +16,8 @@ PanelWindow {
   screen: bar.screen
   WlrLayershell.namespace: "pharnavos-cc"
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.keyboardFocus: Rice.ccOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+  readonly property bool here: !Rice.panelScreen || screen?.name === Rice.panelScreen   // the screen it opens on
+  WlrLayershell.keyboardFocus: Rice.ccOpen && here ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   anchors { top: true; right: true }
   margins { top: 46; right: 0 }
@@ -42,6 +43,7 @@ PanelWindow {
   Connections {
     target: Rice
     function onCcOpenChanged() {
+      if (Rice.ccOpen && !cc.here) return;
       if (Rice.ccOpen) { cc.mapped = true; closeA.stop(); openA.start(); } else { openA.stop(); closeA.start(); }
       clkA.restart();
     }
@@ -56,7 +58,7 @@ PanelWindow {
 
   IpcHandler { target: "cc-ui"; function tab(t: string): void { cc.tab = t } function list(k: string): void { if (k === "out" || k === "in") cc.soundOpen = cc.soundOpen === k ? "" : k; else cc.list = k } }
 
-  HyprlandFocusGrab { windows: [cc, cc.bar]; active: Rice.ccOpen; onCleared: Rice.ccOpen = false }
+  HyprlandFocusGrab { windows: [cc, cc.bar]; active: Rice.ccOpen && cc.here; onCleared: Rice.ccOpen = false }
 
   // ---- data (refreshed while open) -----------------------------------------------
   property var now: new Date()
@@ -151,7 +153,11 @@ PanelWindow {
   function say(t, ok, bad) { toast = t; toastOk = !!ok; toastBad = !!bad; toastT.restart() }
 
   // ---- the panel -------------------------------------------------------------------------
+  // short screens: the whole panel shrinks to fit (down to 68%) instead of hiding its bottom;
+  // below that it scrolls
+  readonly property real fit: Math.max(0.68, Math.min(1, (height - 52) / Math.max(1, body.height)))
   ShaderEffect {
+    transform: Scale { origin.x: cc.width; xScale: cc.fit; yScale: cc.fit }
     x: panel.x; y: 0; width: panel.width; height: panel.height
     visible: !cc.settled
     mesh: GridMesh { resolution: Qt.size(24, 90) }
@@ -166,6 +172,7 @@ PanelWindow {
 
   Item {
     anchors.fill: parent
+    transform: Scale { origin.x: cc.width; xScale: cc.fit; yScale: cc.fit }
 
     // notices (Wi-Fi status…) hang to the left of the panel, like a tag on the cloth
     Item {
@@ -207,7 +214,7 @@ PanelWindow {
       Flickable {
         id: bodyFlick
         x: 22; y: 22; width: parent.width - 44
-        height: Math.min(body.height, cc.height - 44 - 8)
+        height: Math.min(body.height, (cc.height - 52) / cc.fit)
         contentHeight: body.height; clip: true
         interactive: contentHeight > height
         boundsBehavior: Flickable.StopAtBounds
