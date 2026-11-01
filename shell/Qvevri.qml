@@ -73,9 +73,9 @@ Item {
   // the number, written across the belly; outlined so it reads over clay and wine alike
   Text {
     visible: q.label !== ""
-    anchors.horizontalCenter: parent.horizontalCenter; y: 7.5
+    anchors.horizontalCenter: parent.horizontalCenter; y: 6.6
     text: q.label; color: "#FFFFFF"; style: Text.Outline; styleColor: "#070607"
-    font { family: Theme.digits; pixelSize: q.label.length > 2 ? 6.2 : 7.4 }
+    font { family: Theme.digits; pixelSize: q.label.length > 2 ? 7.4 : 9 }
   }
 
   // the rim drawn on top so the mouth stays crisp

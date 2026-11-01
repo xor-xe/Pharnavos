@@ -317,7 +317,7 @@ PanelWindow {
       }
       Item { width: 6; height: 1 }
       Pill {
-        glow: true; spacing: 10
+        glow: true; spacing: 9; pad: 13
       // battery (laptops only): one more qvevri, its wine the charge with the percentage written on it;
       // hot red and throbbing when low, a slow breath while charging; hover says what it is
       MouseArea {
@@ -326,12 +326,12 @@ PanelWindow {
         readonly property real pct: Math.round(dev ? (dev.percentage > 1 ? dev.percentage : dev.percentage * 100) : 0)
         readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge
         visible: !!dev && dev.ready && dev.isLaptopBattery && dev.isPresent
-        width: visible ? 22 : 0; height: 34; hoverEnabled: true
+        width: visible ? 19 : 0; height: 34; hoverEnabled: true
         onContainsMouseChanged: root.tipFor(this, containsMouse)
         Qvevri {
-          anchors.centerIn: parent; scale: 1.25; glow: true
+          anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
-          level: batHit.pct; label: String(batHit.pct); wine: "#E0607E"
+          level: batHit.pct; label: batHit.pct < 100 ? String(batHit.pct) : ""; wine: "#E0607E"   // full: the brim says it
           alarm: batHit.pct <= 15 && !batHit.charging
           pulse: alarm
           SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
@@ -352,8 +352,8 @@ PanelWindow {
             // the chip / memory-stick icon stamped into each jar
             Item {
               required property var modelData
-              width: 20; height: 30
-              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; icon: parent.modelData[0]; scale: 1.25; glow: true }
+              width: 17; height: 26
+              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; icon: parent.modelData[0]; scale: 1.05; glow: true }
             }
           }
         }
@@ -409,8 +409,9 @@ PanelWindow {
     default property alias content: pillRow.data
     property bool glow: false
     property alias spacing: pillRow.spacing
+    property real pad: 8              // inner margin at each end
     anchors.verticalCenter: parent.verticalCenter
-    width: pillRow.implicitWidth + 16; height: 38; radius: 19
+    width: pillRow.implicitWidth + 2 * pad; height: 38; radius: 19
     color: "#0E0B0D"; border { width: 1; color: glow ? Qt.rgba(1, 42 / 255, 58 / 255, 0.55) : "#3A2E33" }
     // the glow: a blurred copy of the outline behind the pill
     Rectangle {
