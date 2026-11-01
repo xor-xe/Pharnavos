@@ -331,7 +331,7 @@ PanelWindow {
         Qvevri {
           anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
-          level: batHit.pct; label: Rice.t("ბ", "B"); wine: "#E0607E"   // ბატარეა; the numbers are on hover
+          level: batHit.pct; glyph: root.jarLetter[Rice.t("ბ", "B")]; wine: "#E0607E"   // ბატარეა; the numbers are on hover
           alarm: batHit.pct <= 15 && !batHit.charging
           pulse: alarm
           SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
@@ -347,11 +347,11 @@ PanelWindow {
           anchors.centerIn: parent; spacing: 10
           Repeater {
             // პროცესორი and მეხსიერება, by their first letters; the numbers are on hover
-            model: [[Rice.t("პ", "C"), Sys.cpu, "#B0151F"], [Rice.t("მ", "M"), Sys.ram, "#C9C1C4"]]
+            model: [[root.jarLetter[Rice.t("პ", "C")], Sys.cpu, "#B0151F"], [root.jarLetter[Rice.t("მ", "M")], Sys.ram, "#C9C1C4"]]
             Item {
               required property var modelData
               width: 17; height: 26
-              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; label: parent.modelData[0]; scale: 1.05; glow: true }
+              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; glyph: parent.modelData[0]; scale: 1.05; glow: true }
             }
           }
         }
@@ -403,6 +403,17 @@ PanelWindow {
 
 
   // ---- little components ---------------------------------------------------
+  // the jars' letters, outlines from BPG Excelsior Caps fitted to the jar's 16×24 box:
+  // ბ for ბატარეა, პ for პროცესორი, მ for მეხსიერება (English: B, C, M)
+  readonly property var jarLetter: ({
+    "ბ": "M8.01 15.5Q7.2 15.5 6.56 15.13Q5.93 14.76 5.6 14.07Q5.27 13.38 5.27 12.4Q5.27 11.47 5.57 10.8Q5.87 10.12 6.39 9.79Q6.92 9.47 7.64 9.4L7.79 8.46Q7.87 7.88 7.32 7.62Q6.77 7.36 6.77 6.5H7.83Q7.82 6.9 8.3 7.19Q8.77 7.49 8.71 8.34L8.51 9.42Q9.14 9.5 9.63 9.81Q10.13 10.12 10.43 10.8Q10.73 11.47 10.73 12.4Q10.73 13.38 10.4 14.07Q10.07 14.76 9.44 15.13Q8.8 15.5 8.01 15.5ZM8 14.65Q8.71 14.65 9.2 14.14Q9.69 13.62 9.69 12.42Q9.69 11.26 9.21 10.75Q8.73 10.23 8.11 10.23Q7.27 10.23 6.79 10.75Q6.31 11.26 6.31 12.42Q6.31 13.62 6.8 14.14Q7.29 14.65 8 14.65Z",
+    "პ": "M7.52 6.5Q7.52 6.89 9.04 7.06Q10.56 7.23 10.56 8.67Q10.57 9.51 9.61 10.05Q10.18 10.4 10.46 10.97Q10.73 11.55 10.73 12.07Q10.73 13.38 10.4 14.07Q10.07 14.76 9.44 15.13Q8.8 15.5 8.01 15.5Q7.2 15.5 6.56 15.13Q5.93 14.76 5.6 14.07Q5.27 13.38 5.27 12.36Q5.27 11.8 5.54 11L6.54 11.25Q6.31 11.87 6.31 12.38Q6.31 13.62 6.8 14.14Q7.29 14.65 8 14.65Q8.71 14.65 9.2 14.14Q9.69 13.62 9.69 12.09Q9.69 11.4 9.24 10.9Q8.79 10.4 8.11 10.4H7.49V9.55H8.47Q9.02 9.55 9.27 9.4Q9.52 9.25 9.52 8.64Q9.52 7.77 7.89 7.63Q6.26 7.5 6.26 6.5Z",
+    "მ": "M10.73 12.4Q10.73 13.38 10.4 14.07Q10.07 14.76 9.44 15.13Q8.8 15.5 8.01 15.5Q7.2 15.5 6.56 15.13Q5.93 14.76 5.6 14.07Q5.27 13.38 5.27 12.4Q5.27 11.47 5.57 10.8Q5.87 10.12 6.46 9.75Q7.05 9.38 8.01 9.38Q8.95 9.38 9.75 10.23V8.56Q9.75 8.01 9.29 7.66Q8.84 7.3 8.15 7.3Q7.42 7.3 7.01 7.57Q6.61 7.84 6.61 8.39H5.58Q5.58 7.55 6.27 7.02Q6.97 6.5 8.16 6.5Q9.26 6.5 10 7.11Q10.73 7.71 10.73 8.59ZM8 14.65Q8.71 14.65 9.23 14.14Q9.75 13.62 9.75 12.42Q9.75 11.27 9.24 10.75Q8.73 10.23 8 10.23Q7.27 10.23 6.79 10.75Q6.31 11.27 6.31 12.42Q6.31 13.62 6.8 14.14Q7.29 14.65 8 14.65Z",
+    "B": "M6.03 11.2V14.5H7.98Q8.96 14.5 9.43 14.09Q9.91 13.69 9.91 12.85Q9.91 12 9.43 11.6Q8.96 11.2 7.98 11.2ZM6.03 7.5V10.21H7.83Q8.72 10.21 9.16 9.88Q9.59 9.54 9.59 8.86Q9.59 8.18 9.16 7.84Q8.72 7.5 7.83 7.5ZM4.81 6.5H7.92Q9.31 6.5 10.06 7.08Q10.82 7.66 10.82 8.72Q10.82 9.55 10.43 10.04Q10.05 10.53 9.3 10.65Q10.2 10.84 10.69 11.45Q11.19 12.06 11.19 12.98Q11.19 14.19 10.37 14.84Q9.55 15.5 8.04 15.5H4.81Z",
+    "C": "M11.5 7.33V8.56Q10.91 8.01 10.23 7.74Q9.56 7.46 8.81 7.46Q7.32 7.46 6.53 8.37Q5.74 9.28 5.74 11Q5.74 12.72 6.53 13.63Q7.32 14.54 8.81 14.54Q9.56 14.54 10.23 14.26Q10.91 13.99 11.5 13.44V14.66Q10.88 15.08 10.19 15.29Q9.5 15.5 8.74 15.5Q6.77 15.5 5.64 14.29Q4.5 13.09 4.5 11Q4.5 8.91 5.64 7.71Q6.77 6.5 8.74 6.5Q9.52 6.5 10.2 6.71Q10.89 6.91 11.5 7.33Z",
+    "M": "M3.88 6.5H5.7L7.99 12.62L10.3 6.5H12.12V15.5H10.93V7.6L8.61 13.77H7.39L5.06 7.6V15.5H3.88Z"
+  })
+
   component Pill: Rectangle {
     default property alias content: pillRow.data
     property bool glow: false

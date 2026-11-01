@@ -8,7 +8,7 @@ Item {
   id: q
   property real level: 0          // 0..100
   property string icon: ""        // SVG path in a 24×24 box, stamped into the clay
-  property string label: ""       // or a letter written on the clay instead
+  property string glyph: ""       // or a letter on the belly instead: an SVG path in the 16×24 box
   property color wine: "#B0151F"
   property color hot: "#FF3B3B"
   property bool alarm: level > 85   // the wine turns hot red
@@ -70,13 +70,11 @@ Item {
     Stamp { ink: "#070607"; y: 6.6 - (q.height - parent.height) }
   }
 
-  // the letter, written across the belly; drawn as curves so it stays sharp when the jar is scaled
-  Text {
-    visible: q.label !== ""
-    anchors.horizontalCenter: parent.horizontalCenter; y: 6.6
-    renderType: Text.CurveRendering
-    text: q.label; color: "#FFFFFF"
-    font { family: Theme.labelFor(text); pixelSize: 10 }
+  // the letter on the belly: a filled vector outline in the jar's 16×24 box (stays sharp when scaled)
+  Shape {
+    visible: q.glyph !== ""
+    anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
+    ShapePath { fillColor: "#FFFFFF"; strokeWidth: 0; strokeColor: "transparent"; PathSvg { path: q.glyph } }
   }
 
   // the rim drawn on top so the mouth stays crisp
