@@ -268,7 +268,6 @@ PanelWindow {
     Column {
       anchors { right: parent.right; rightMargin: 30; bottom: parent.bottom; bottomMargin: 84 }
       Text { anchors.right: parent.right; text: Math.round(osd.shownBri * 100); color: "#FFB547"; style: Text.Outline; styleColor: "#000000"; font { family: Theme.digits; pixelSize: 72 } }
-      Text { anchors.right: parent.right; text: Rice.t("სიკაშკაშე", "brightness"); color: "#FFFFFF"; style: Text.Outline; styleColor: "#000000"; font { family: Theme.labelFor(text); pixelSize: 16 } }
     }
   }
 }

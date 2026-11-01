@@ -10,6 +10,7 @@ import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
+import Quickshell.Services.UPower
 import Quickshell.Wayland
 import Quickshell.Widgets
 
@@ -99,35 +100,38 @@ PanelWindow {
         }
       }
 
-      // left wing, one line: date · part of the day · time (24h: date · time; AM/PM: date · time PM)
+      // left wing, hugging the sun (as the song does on the right). One line when it fits:
+      // date · part of the day · time; else two lines: the time, and under it part of the day · date
+      readonly property real wing: 160
+      readonly property real room: hz.cx - wing - wsRow.x - wsRow.width - 24
+      readonly property string dateText: Theme.days[root.now.getDay()] + " " + root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
+      readonly property string timeText: Theme.time(root.now, Rice.cfg.clockFmt) + (Rice.cfg.clockFmt === "ampm" ? " " + Theme.period(root.now, "ampm") : "")
+      readonly property bool oneLine: oneRow.implicitWidth <= room
       Row {
-        anchors { right: parent.right; rightMargin: parent.width - hz.cx + 172; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
+        id: oneRow
+        visible: hz.oneLine
+        anchors { right: parent.right; rightMargin: parent.width - hz.cx + hz.wing; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
         spacing: 9
-        // narrow screens: what fits between the workspaces and the sun, dropping the date first,
-        // then the part of the day; the time always stays
-        readonly property real room: hz.cx - 172 - wsRow.x - wsRow.width - 24
-        readonly property bool wordFits: hzWordT.implicitWidth + 9 + hzTimeT.implicitWidth <= room
-        readonly property bool roomy: wordFits && hzDateT.implicitWidth + hzDotT.implicitWidth + 18 + hzWordT.implicitWidth + 9 + hzTimeT.implicitWidth <= room
+        Text { id: hzTimeT; visible: false; text: hz.timeText; font { family: Theme.labelFor(text); pixelSize: 23 } }   // baseline only
+        Text { anchors.baseline: hzTimeT.baseline; text: hz.dateText; color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+        Text { anchors.baseline: hzTimeT.baseline; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 15; bold: true } }
+        Text { visible: hz.word !== ""; anchors.baseline: hzTimeT.baseline; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+        // same font as the date (BPG has no bold, so white instead of bold makes the time lead)
+        Text { anchors.baseline: hzTimeT.baseline; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+      }
+      Column {
+        visible: !hz.oneLine
+        anchors { right: parent.right; rightMargin: parent.width - hz.cx + hz.wing; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
+        spacing: -1
+        Text { anchors.right: parent.right; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 20 } }
         Text {
-          id: hzDateT
-          visible: parent.roomy
-          anchors.baseline: hzTimeT.baseline
-          text: Theme.days[root.now.getDay()] + " " + root.now.getDate() + " "
-                + Theme.monthsShort[root.now.getMonth()]
-          color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 23 }
-        }
-        Text { id: hzDotT; visible: parent.roomy; anchors.baseline: hzTimeT.baseline; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 15; bold: true } }
-        Text {
-          id: hzWordT
-          visible: hz.word !== "" && parent.wordFits
-          anchors.baseline: hzTimeT.baseline
-          text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 }
-        }
-        Text {
-          id: hzTimeT
-          text: Theme.time(root.now, Rice.cfg.clockFmt) + (Rice.cfg.clockFmt === "ampm" ? " " + Theme.period(root.now, "ampm") : "")
-          // same font as the date (BPG has no bold, so white instead of bold makes the time lead)
-          color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 23 }
+          id: line2
+          anchors.right: parent.right
+          readonly property string full: [hz.word, hz.dateText].filter(s => s).join(" · ")
+          // still too narrow: the part of the day alone (24 h: the short date)
+          text: lineM.width <= hz.room ? full : hz.word || root.now.getDate() + " " + Theme.monthsShort[root.now.getMonth()]
+          TextMetrics { id: lineM; font: line2.font; text: line2.full }
+          color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 }
         }
       }
 
@@ -152,23 +156,57 @@ PanelWindow {
         }
       }
 
-      Text {
-        // the song: as wide as the room up to the status icons allows, hidden when there's too little
+      // the song: a note mark, then the title in its own clipped slot (the mark never scrolls),
+      // as wide as the room up to the status icons allows; too long a title scrolls slowly.
+      // No room for a title (small screens): the mark alone, the title on hover
+      MouseArea {
+        id: songBox
+        hoverEnabled: true
+        onContainsMouseChanged: root.tipFor(this, containsMouse && !slot.visible)
         readonly property real room: statusRow.x - 16 - x
-        visible: root.playing && room >= 90
-        x: hz.cx + 172; anchors.verticalCenter: parent.verticalCenter; width: Math.min(320, room); elide: Text.ElideRight
-        // names from players, apps and nearby Wi-Fi are shown as plain text: as rich text, a title like
-        // <img src="https://…"> would load from the internet
-        textFormat: Text.PlainText
-        text: [root.player?.trackArtist, root.player?.trackTitle].filter(s => s).join(" — ")
-        color: root.cream; font { family: Theme.headFor(text); pixelSize: 16 }
+        readonly property string title: [root.player?.trackArtist, root.player?.trackTitle].filter(s => s).join(" — ")
+        visible: root.playing && room >= 24
+        x: hz.cx + hz.wing; height: parent.height; width: room >= 120 ? Math.min(340, room) : 24
+        Shape {
+          anchors.verticalCenter: parent.verticalCenter; width: 14; height: 16; preferredRendererType: Shape.CurveRenderer
+          ShapePath { fillColor: root.red; strokeWidth: 0; strokeColor: "transparent"; PathSvg { path: "M5 2 L14 0 L14 11 A2.6 2.6 0 1 1 12 8.6 L12 3 L7 4 L7 13 A2.6 2.6 0 1 1 5 10.6 Z" } }
+        }
+        Item {
+          id: slot
+          visible: songBox.room >= 120
+          x: 24; width: parent.width - 24; height: parent.height; clip: true
+          readonly property bool long: songM.advanceWidth > width
+          property real shift: 0
+          onLongChanged: shift = 0
+          // stepped at 30 Hz like the sun: a smooth animation would redraw the bar at the monitor's rate
+          Timer {
+            interval: 33; repeat: true; running: songBox.visible && slot.visible && slot.long
+            onTriggered: slot.shift = (slot.shift + 1) % (songM.advanceWidth + 48)
+          }
+          Row {
+            x: -slot.shift; anchors.verticalCenter: parent.verticalCenter; spacing: 48
+            Repeater {
+              model: slot.long ? 2 : 1
+              Text {
+                // names from players, apps and nearby Wi-Fi are shown as plain text: as rich text, a title like
+                // <img src="https://…"> would load from the internet
+                textFormat: Text.PlainText
+                text: songBox.title
+                color: root.cream; font { family: Theme.headFor(text); pixelSize: 16 }
+              }
+            }
+          }
+          TextMetrics { id: songM; font { family: Theme.headFor(songBox.title); pixelSize: 16 } text: songBox.title }
+        }
       }
     }
 
     // workspaces: Khevsur cross-stitch diamonds
     Row {
       id: wsRow
-      x: 14; anchors.verticalCenter: parent.verticalCenter; spacing: 8
+      // narrow screens: the diamonds sit closer so the clock has room
+      readonly property bool tight: root.width < 1800
+      x: 14; anchors.verticalCenter: parent.verticalCenter; spacing: tight ? 2 : 8
       Repeater {
         model: 9
         MouseArea {
@@ -176,7 +214,7 @@ PanelWindow {
           required property int index
           readonly property bool on: Hyprland.focusedWorkspace?.id === index + 1
           readonly property bool used: Hyprland.workspaces.values.some(w => w.id === index + 1 && w.toplevels.values.length > 0)
-          width: 32; height: 32
+          width: wsRow.tight ? 30 : 32; height: 32
           onClicked: Rice.dispatch("workspace " + (index + 1), "hl.dsp.focus({ workspace = " + (index + 1) + " })")
           Diamond {
             anchors.centerIn: parent
@@ -274,6 +312,24 @@ PanelWindow {
         Rectangle { anchors.fill: parent; radius: 17; color: "transparent"; border { width: 1.5; color: root.red } visible: Rice.notifShowAll }
         Rectangle { visible: Rice.notifCount > 0 && !Rice.notifShowAll; x: 21; y: 6; width: 8; height: 8; radius: 4; color: root.red }
       }
+      // battery (laptops only): one more qvevri, its wine the charge with the percentage written on it;
+      // hot red and throbbing when low, a slow breath while charging; hover says what it is
+      MouseArea {
+        id: batHit
+        readonly property var dev: UPower.displayDevice
+        readonly property real pct: Math.round(dev ? (dev.percentage > 1 ? dev.percentage : dev.percentage * 100) : 0)
+        readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge
+        visible: !!dev && dev.ready && dev.isLaptopBattery && dev.isPresent
+        width: visible ? 36 : 0; height: 40; hoverEnabled: true
+        onContainsMouseChanged: root.tipFor(this, containsMouse)
+        Qvevri {
+          anchors.centerIn: parent; scale: 1.5
+          level: batHit.pct; label: String(batHit.pct); wine: "#B0151F"
+          alarm: batHit.pct <= 15 && !batHit.charging
+          pulse: alarm
+          SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
+        }
+      }
       // load as two qvevri: wine rises with CPU (red) and RAM (cream); hover for numbers
       MouseArea {
         id: loadHit
@@ -313,6 +369,8 @@ PanelWindow {
   Timer { id: tipHold; interval: 1600; onTriggered: if (!root.tipItem?.containsMouse) root.tipItem = null }
   readonly property string tipText: {
     const t = root.tipItem;
+    if (t === songBox) return songBox.title;
+    if (t === batHit) return Rice.t("ბატარეა", "Battery") + " · " + batHit.pct + "%" + (batHit.charging ? Rice.t(" · იტენება", " · charging") : "");
     if (t === loadHit) return "CPU " + Sys.cpu + "%  ·  RAM " + Sys.ramUsedG + " / " + Sys.ramTotalG + " G";
     if (t === netBtn) return !Sys.online ? Rice.t("კავშირი არ არის", "Offline")
       : "↓ " + Sys.rate(Sys.rxRate) + "   ↑ " + Sys.rate(Sys.txRate) + "\n" + (Sys.ssid ? Sys.ssid + " · " + Sys.signal + "%" : Rice.t("სადენიანი", "Wired"));

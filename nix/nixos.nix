@@ -53,6 +53,7 @@ in
       networking.networkmanager.enable = mkDefault true;  # Wi-Fi seal
       hardware.bluetooth.enable = mkDefault true;         # Bluetooth seal
       services.blueman.enable = mkDefault true;           # blueman-manager, opened from the bar
+      services.upower.enable = mkDefault true;            # battery qvevri on laptops
       services.power-profiles-daemon.enable = mkIf cfg.powerProfiles (mkDefault true);
     })
   ];

@@ -157,7 +157,7 @@ PanelWindow {
   // below that it scrolls
   readonly property real fit: Math.max(0.68, Math.min(1, (height - 52) / Math.max(1, body.height)))
   ShaderEffect {
-    transform: Scale { origin.x: cc.width; xScale: cc.fit; yScale: cc.fit }
+    transform: Scale { origin.x: cc.width - panel.x; xScale: cc.fit; yScale: cc.fit }   // origin is local: the surface's right edge
     x: panel.x; y: 0; width: panel.width; height: panel.height
     visible: !cc.settled
     mesh: GridMesh { resolution: Qt.size(24, 90) }

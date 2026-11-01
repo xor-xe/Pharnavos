@@ -8,9 +8,11 @@ Item {
   id: q
   property real level: 0          // 0..100
   property string icon: ""        // SVG path in a 24×24 box, stamped into the clay
+  property string label: ""       // or a number written on the clay instead (the battery's percentage)
   property color wine: "#B0151F"
   property color hot: "#FF3B3B"
-  readonly property bool alarm: level > 85
+  property bool alarm: level > 85   // the wine turns hot red
+  property bool pulse: level > 95   // and throbs
   // the level is by volume: height fraction holding 0,10,…,100 % of this shape's volume
   readonly property var volH: [0, 0.221, 0.323, 0.406, 0.479, 0.546, 0.613, 0.677, 0.746, 0.827, 1.0]
   function fillHeight(v) {
@@ -37,7 +39,7 @@ Item {
       height: parent.height * q.fillHeight(q.level)
       color: q.alarm ? q.hot : q.wine
       Behavior on height { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
-      SequentialAnimation on opacity { running: q.level > 95; loops: Animation.Infinite; NumberAnimation { to: 0.45; duration: 400 } NumberAnimation { to: 1; duration: 400 } }
+      SequentialAnimation on opacity { running: q.pulse; loops: Animation.Infinite; NumberAnimation { to: 0.45; duration: 400 } NumberAnimation { to: 1; duration: 400 } }
     }
   }
   Shape {
@@ -63,6 +65,14 @@ Item {
     height: parent.height * q.fillHeight(q.level)
     Behavior on height { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
     Stamp { ink: "#070607"; y: 6.6 - (q.height - parent.height) }
+  }
+
+  // the number, written across the belly; outlined so it reads over clay and wine alike
+  Text {
+    visible: q.label !== ""
+    anchors.horizontalCenter: parent.horizontalCenter; y: 7.5
+    text: q.label; color: "#FFFFFF"; style: Text.Outline; styleColor: "#070607"
+    font { family: Theme.digits; pixelSize: q.label.length > 2 ? 6.2 : 7.4 }
   }
 
   // the rim drawn on top so the mouth stays crisp
