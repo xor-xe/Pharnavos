@@ -331,7 +331,7 @@ PanelWindow {
         Qvevri {
           anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
-          level: batHit.pct; label: batHit.pct < 100 ? String(batHit.pct) : ""; wine: "#E0607E"   // full: the brim says it
+          level: batHit.pct; label: Rice.t("ბ", "B"); wine: "#E0607E"   // ბატარეა; the numbers are on hover
           alarm: batHit.pct <= 15 && !batHit.charging
           pulse: alarm
           SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
@@ -346,14 +346,12 @@ PanelWindow {
           id: loadRow
           anchors.centerIn: parent; spacing: 10
           Repeater {
-            // a chip and a memory stick stamped into the clay
-            model: [["M7 7h10v10H7zM10 10h4v4h-4zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4", Sys.cpu, "#B0151F"],
-                    ["M3 7h18v8H3zM6 15v3M10 15v3M14 15v3M18 15v3M7 10h2v2H7zM11 10h2v2h-2zM15 10h2v2h-2z", Sys.ram, "#C9C1C4"]]
-            // the chip / memory-stick icon stamped into each jar
+            // პროცესორი and მეხსიერება, by their first letters; the numbers are on hover
+            model: [[Rice.t("პ", "C"), Sys.cpu, "#B0151F"], [Rice.t("მ", "M"), Sys.ram, "#C9C1C4"]]
             Item {
               required property var modelData
               width: 17; height: 26
-              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; icon: parent.modelData[0]; scale: 1.05; glow: true }
+              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; label: parent.modelData[0]; scale: 1.05; glow: true }
             }
           }
         }

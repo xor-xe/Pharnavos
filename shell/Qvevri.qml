@@ -8,7 +8,7 @@ Item {
   id: q
   property real level: 0          // 0..100
   property string icon: ""        // SVG path in a 24×24 box, stamped into the clay
-  property string label: ""       // or a number written on the clay instead (the battery's percentage)
+  property string label: ""       // or a letter written on the clay instead
   property color wine: "#B0151F"
   property color hot: "#FF3B3B"
   property bool alarm: level > 85   // the wine turns hot red
@@ -70,12 +70,12 @@ Item {
     Stamp { ink: "#070607"; y: 6.6 - (q.height - parent.height) }
   }
 
-  // the number, written across the belly; outlined so it reads over clay and wine alike
+  // the letter, written across the belly; outlined so it reads over clay and wine alike
   Text {
     visible: q.label !== ""
     anchors.horizontalCenter: parent.horizontalCenter; y: 6.6
     text: q.label; color: "#FFFFFF"; style: Text.Outline; styleColor: "#070607"
-    font { family: Theme.digits; pixelSize: q.label.length > 2 ? 7.4 : 9 }
+    font { family: Theme.labelFor(text); pixelSize: 10 }
   }
 
   // the rim drawn on top so the mouth stays crisp
