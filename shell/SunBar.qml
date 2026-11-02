@@ -307,12 +307,15 @@ PanelWindow {
         Icon { visible: !Sys.online; d: "M4 4l16 16"; c: root.red }
       }
       // Bluetooth: dim off, cream on, red dot with a device connected; hover = devices + battery,
-      // click = blueman's manager
+      // click = turn it on (if off) and open blueman's manager
       IconBtn {
         id: btBtn
         readonly property var devs: Bluetooth.devices.values.filter(d => d.connected)
         on: Bluetooth.defaultAdapter?.enabled ?? false
-        onClicked: Quickshell.execDetached(["blueman-manager"])
+        onClicked: {
+          if (Bluetooth.defaultAdapter && !on) Bluetooth.defaultAdapter.enabled = true;
+          Quickshell.execDetached(["blueman-manager"])
+        }
         onContainsMouseChanged: pops.hover("bt", this, containsMouse)
         Icon { d: "M7 7l10 10-5 4V3l5 4L7 17"; c: parent.fg }
         Rectangle { visible: btBtn.devs.length > 0; x: 22; y: 6; width: 7; height: 7; radius: 3.5; color: root.red }

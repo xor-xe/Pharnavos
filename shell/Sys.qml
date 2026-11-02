@@ -18,8 +18,8 @@ Singleton {
   property real txRate: 0
   property string iface: ""
   // the last minute of traffic (30 readings, 2 s apart) for the Wi-Fi popup's graph: just numbers
-  property var rxHist: Array(30).fill(0)
-  property var txHist: Array(30).fill(0)
+  property var rxHist: Array(60).fill(0)
+  property var txHist: Array(60).fill(0)
 
   property var prev: [0, 0]
   FileView {
@@ -81,6 +81,7 @@ Singleton {
       root.rxHist = root.rxHist.slice(1).concat([root.rxRate]); root.txHist = root.txHist.slice(1).concat([root.txRate]);
     }
   }
+  Timer { interval: 1000; running: true; repeat: true; onTriggered: netdev.reload() }
   function rate(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + " MB/s" : b >= 1024 ? Math.round(b / 1024) + " KB/s" : Math.round(b) + " B/s" }
 
   function setProfile(p) { profile = p; ppSet.exec(["powerprofilesctl", "set", p]) }
@@ -93,7 +94,7 @@ Singleton {
     interval: 2000; running: true; repeat: true; triggeredOnStart: true
     property int n: 0
     onTriggered: {
-      stat.reload(); mem.reload(); route.reload(); netdev.reload();
+      stat.reload(); mem.reload(); route.reload();
       if (n++ % 5 === 0) { net.running = true; pp.running = Rice.power; wifi.running = true; }
     }
   }

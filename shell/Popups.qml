@@ -80,7 +80,9 @@ Item {
     return (h ? h + Rice.t(" სთ ", " h ") : "") + (m % 60) + Rice.t(" წთ", " min");
   }
   function rateParts(b) {
-    return b >= 1048576 ? [(b / 1048576).toFixed(1), "MB/s"] : b >= 1024 ? [String(Math.round(b / 1024)), "KB/s"] : [String(Math.round(b)), "B/s"];
+    // never B/s: "954 B/s" next to "9 KB/s" reads as the bigger number
+    const k = b / 1024;
+    return b >= 1048576 ? [(b / 1048576).toFixed(1), "MB/s"] : [k < 10 ? k.toFixed(1) : String(Math.round(k)), "KB/s"];
   }
   readonly property var paths: ({
     down: "M12 4v14M6 12l6 6 6-6", up: "M12 20V6M6 12l6-6 6 6",
@@ -272,7 +274,8 @@ Item {
           required property int index
           readonly property var hist: modelData[1] === "rx" ? Sys.rxHist : Sys.txHist
           readonly property real now: modelData[1] === "rx" ? Sys.rxRate : Sys.txRate
-          readonly property real peak: Math.max(65536, ...hist)
+          // log scale: a few KB/s of browsing still moves the line next to a 20 MB/s burst
+          readonly property real peak: Math.log1p(Math.max(1048576, ...hist) / 1024)
           width: parent.width; height: 84
           Rectangle { width: parent.width; height: 1; color: "#211A1E"; y: flow.index ? 4 : 0 }
           Text { y: 12; text: flow.modelData[0]; color: pops.grey; font { family: Theme.labelFor(text); pixelSize: 11; weight: Font.DemiBold } }
@@ -284,7 +287,7 @@ Item {
           Shape {
             id: graph
             y: 38; width: parent.width; height: 40; preferredRendererType: Shape.CurveRenderer
-            readonly property var pts: flow.hist.map((v, i) => Qt.point(i / (flow.hist.length - 1) * width, height - 2 - Math.min(1, v / flow.peak) * (height - 4)))
+            readonly property var pts: flow.hist.map((v, i) => Qt.point(i / (flow.hist.length - 1) * width, height - 2 - Math.min(1, Math.log1p(v / 1024) / flow.peak) * (height - 4)))
             readonly property color c: flow.modelData[2]
             ShapePath {
               strokeWidth: 0; strokeColor: "transparent"; fillColor: Qt.rgba(graph.c.r, graph.c.g, graph.c.b, 0.14)
@@ -335,7 +338,7 @@ Item {
           sub: modelData.connected ? Rice.t("მიერთებულია", "connected") : Rice.t("დაწყვილებულია · არ არის მიერთებული", "paired · not connected")
         }
       }
-      Foot { text: Rice.t("დააჭირე: Bluetooth-ის მართვა", "click: Bluetooth manager") }
+      Foot { text: bc.on ? Rice.t("დააჭირე: Bluetooth-ის მართვა", "click: Bluetooth manager") : Rice.t("დააჭირე: ჩართვა და მართვა", "click: turn on and open the manager") }
     }
   }
 
