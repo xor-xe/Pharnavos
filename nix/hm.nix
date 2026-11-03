@@ -277,7 +277,7 @@ in
         message = "programs.pharnavos is your bar: disable programs.waybar / programs.eww / programs.hyprpanel.";
       }
       {
-        assertion = !builtins.any (o: o) [ (config.services.swww.enable or false) (config.services.awww.enable or false) (config.services.hyprpaper.enable or false) (config.services.wpaperd.enable or false) ];
+        assertion = !builtins.any (o: o) [ (config.services.awww.enable or false) (config.services.hyprpaper.enable or false) (config.services.wpaperd.enable or false) ];
         message = "programs.pharnavos draws the wallpaper: disable services.swww / services.awww / services.hyprpaper / services.wpaperd.";
       }
     ];
