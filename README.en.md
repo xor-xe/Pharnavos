@@ -53,6 +53,19 @@ wallpaper reads Wardrop's Rustaveli and Hewitt's Vazha-Pshavela.
 
 ## Install
 
+**Already on NixOS with KDE Plasma or GNOME?** Open a terminal and run:
+
+```sh
+sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Pharnavos#install
+```
+
+Press Enter, wait a few minutes, reboot and log in. Your `configuration.nix` stays as it is (a small
+`flake.nix` next to it adds Pharnavos), your old desktop stays on the login screen, and `/etc/nixos`
+is backed up first. NVIDIA graphics get their driver. To change your system later, edit
+`configuration.nix` and run `sudo nixos-rebuild switch` as usual.
+
+For a hand-made setup, read on.
+
 > [!NOTE]
 > You need NixOS with flakes and home-manager. Pharnavos works on **NixOS 26.05** (Hyprland 0.55,
 > hyprlang config) and **nixos-unstable** (Hyprland 0.56+, Lua config: set

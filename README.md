@@ -53,6 +53,20 @@
 
 ## დაყენება
 
+**უკვე გაქვს NixOS KDE Plasma-თი ან GNOME-ით?** გახსენი ტერმინალი და გაუშვი:
+
+```sh
+sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Pharnavos#install
+```
+
+დააჭირე Enter-ს, დაელოდე რამდენიმე წუთს, გადატვირთე და შედი. შენი `configuration.nix` ისე რჩება,
+როგორც იყო (მის გვერდით პატარა `flake.nix` ამატებს ფარნავოსს), ძველი სამუშაო მაგიდა შესვლის ეკრანზე
+რჩება, `/etc/nixos`-ის ასლი კი წინასწარ ინახება. NVIDIA-ს ვიდეობარათს მისი დრაივერი მოჰყვება.
+მოგვიანებით სისტემის შესაცვლელად ჩვეულებრივად შეცვალე `configuration.nix` და გაუშვი
+`sudo nixos-rebuild switch`.
+
+ხელით აწყობისთვის, განაგრძე კითხვა.
+
 > [!NOTE]
 > დაგჭირდება NixOS flake-ებით და home-manager. ფარნავოსი მუშაობს **NixOS 26.05**-ზე (Hyprland 0.55,
 > hyprlang კონფიგურაცია) და **nixos-unstable**-ზე (Hyprland 0.56+, Lua კონფიგურაცია: დააყენე
