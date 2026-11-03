@@ -32,7 +32,7 @@ Item {
   readonly property color grey: "#8C8186"
   readonly property string mono: "FiraCode Nerd Font"
 
-  readonly property real w: ({ jars: 290, wifi: 360, bt: 300, power: 300, sound: 300 })[key] ?? 290
+  readonly property real w: ({ jars: 290, wifi: 360, bt: 300, power: 300, sound: 300, bri: 300 })[key] ?? 290
   readonly property real cx: anchorItem ? anchorItem.mapToItem(bar.contentItem, anchorItem.width / 2, 0).x : 0
   // kept on screen; at the right edge it sits flush against it, like the control centre
   readonly property bool edge: cx + w / 2 >= bar.width - 8
@@ -63,13 +63,13 @@ Item {
       x: 14; y: 12; width: parent.width - 28
       Text {
         bottomPadding: 2
-        text: ({ jars: Rice.t("მარანი", "Cellar"), wifi: "Wi-Fi", bt: "Bluetooth", power: Rice.t("ენერგია", "Power"), sound: Rice.t("ხმა", "Sound") })[pops.key] ?? ""
+        text: ({ jars: Rice.t("მარანი", "Cellar"), wifi: "Wi-Fi", bt: "Bluetooth", power: Rice.t("ენერგია", "Power"), sound: Rice.t("ხმა", "Sound"), bri: Rice.t("სიკაშკაშე", "Brightness") })[pops.key] ?? ""
         color: pops.red; font { family: Theme.labelFor(text); pixelSize: 11; letterSpacing: 1.4 }
       }
       Loader {
         width: parent.width
         active: pops.shown
-        sourceComponent: ({ jars: jarsC, wifi: wifiC, bt: btC, power: powerC, sound: soundC })[pops.key] ?? null
+        sourceComponent: ({ jars: jarsC, wifi: wifiC, bt: btC, power: powerC, sound: soundC, bri: briC })[pops.key] ?? null
       }
     }
   }
@@ -496,6 +496,31 @@ Item {
           }
         }
       }
+    }
+  }
+
+  // ---- brightness: the laptop screen, live ----------------------------------------------------------
+  Component {
+    id: briC
+    Item {
+      id: bl
+      width: parent.width; height: 56
+      Glyph { x: 2; y: 4; scale: 0.8; d: "M12 8a4 4 0 1 0 0.01 0M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"; c: pops.cream }
+      Text { x: 46; y: 8; text: Rice.t("ეკრანი", "screen"); color: pops.grey; font { family: pops.mono; pixelSize: 10 } }
+      Item {
+        id: btrack
+        x: 46; y: 30; width: parent.width - 46 - 44; height: 14
+        Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width; height: 6; radius: 3; color: "#1E181B" }
+        Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width * Sys.bright; height: 6; radius: 3; color: pops.red }
+        Rectangle { x: parent.width * Sys.bright - 7; anchors.verticalCenter: parent.verticalCenter; width: 14; height: 14; radius: 7; color: pops.cream }
+        MouseArea {
+          anchors.fill: parent; anchors.margins: -6
+          function set(m) { Sys.setBright((m.x - 6) / btrack.width) }
+          onPressed: m => set(m)
+          onPositionChanged: m => { if (pressed) set(m) }
+        }
+      }
+      Text { anchors.right: parent.right; anchors.verticalCenter: btrack.verticalCenter; text: String(Math.round(Sys.bright * 100)); color: pops.red; font { family: Theme.digits; pixelSize: 20 } }
     }
   }
 }

@@ -74,6 +74,8 @@ in
         (bindWith "XF86AudioRaiseVolume" ''hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")'' media)
         (bindWith "XF86AudioLowerVolume" ''hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")'' media)
         (bindWith "XF86AudioMute" ''hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")'' media)
+        (bindWith "XF86MonBrightnessUp" ''hl.dsp.exec_cmd("pharnavos ipc call brightness up")'' media)     # laptop screen
+        (bindWith "XF86MonBrightnessDown" ''hl.dsp.exec_cmd("pharnavos ipc call brightness down")'' media)
       ] ++ builtins.concatLists (builtins.genList (i: let n = toString (i + 1); in [
         (bind "SUPER + ${n}" "hl.dsp.focus({ workspace = ${n} })")
         (bind "SUPER + SHIFT + ${n}" "hl.dsp.window.move({ workspace = ${n} })")

@@ -327,7 +327,18 @@ PanelWindow {
         onClicked: if (root.sink) root.sink.audio.muted = !root.sink.audio.muted
         onWheel: w => { if (root.sink) root.sink.audio.volume = Math.max(0, Math.min(1, root.sink.audio.volume + (w.angleDelta.y > 0 ? 0.05 : -0.05))) }
         Icon { x: 8; anchors.verticalCenter: parent.verticalCenter; anchors.centerIn: undefined; d: "M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"; c: parent.fg }
-        Text { x: 32; anchors.verticalCenter: parent.verticalCenter; text: Math.round((root.sink?.audio.volume ?? 0) * 100); color: parent.fg; font { family: root.mono; pixelSize: 12; bold: true } }
+        Level { anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: optical; text: Math.round((root.sink?.audio.volume ?? 0) * 100); color: parent.fg }
+      }
+      // brightness, on screens with a backlight (laptops): scroll ±5%, click 30% ↔ 100%, hover = slider
+      IconBtn {
+        visible: Sys.backlight !== ""
+        width: root.tight ? 56 : 64
+        on: true
+        onContainsMouseChanged: pops.hover("bri", this, containsMouse)
+        onClicked: Sys.setBright(Sys.bright < 0.99 ? 1 : 0.3)
+        onWheel: w => Sys.setBright(Sys.bright + (w.angleDelta.y > 0 ? 0.05 : -0.05))
+        Icon { x: 8; anchors.verticalCenter: parent.verticalCenter; anchors.centerIn: undefined; d: "M12 8a4 4 0 1 0 0.01 0M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"; c: parent.fg }
+        Level { anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: optical; text: Math.round(Sys.bright * 100); color: parent.fg }
       }
       // power profile: the needle shows the mode (left saver, up balanced, right performance, red);
       // click = next profile, named in the tooltip for a moment
@@ -395,12 +406,16 @@ PanelWindow {
       }
       Item { width: 4; height: 1 }
       IconBtn {
-        // St. Nino's grapevine cross — opens the control centre
+        // the Bolnisi cross in its circle: arms thin at the centre, flaring like trumpets — opens the control centre
+        // as tall as the pills beside it: drawn on a 24 grid, scaled to 38
+        width: 38; height: 38
         onClicked: { Rice.panelScreen = root.screen.name; Rice.ccOpen = !Rice.ccOpen }
         Shape {
-          anchors.centerIn: parent; width: 20; height: 26
+          anchors.centerIn: parent; width: 24; height: 24; scale: 38 / 24
           preferredRendererType: Shape.CurveRenderer
-          ShapePath { strokeColor: root.red; strokeWidth: 3; fillColor: "transparent"; capStyle: ShapePath.RoundCap; PathSvg { path: "M10 2 C9.4 9 10.6 17 10 24M2 11 Q10 6 18 11" } }
+          ShapePath { strokeColor: root.red; strokeWidth: 1; fillColor: "transparent"; PathSvg { path: "M12 0.5 A11.5 11.5 0 1 1 11.99 0.5" } }
+          ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: root.red; PathSvg { path: "M11.24 12 Q11.41 6.96 8.14 3.94 Q12 5.78 15.86 3.94 Q12.59 6.96 12.76 12ZM12 11.24 Q17.04 11.41 20.06 8.14 Q18.22 12 20.06 15.86 Q17.04 12.59 12 12.76ZM12.76 12 Q12.59 17.04 15.86 20.06 Q12 18.22 8.14 20.06 Q11.41 17.04 11.24 12ZM12 12.76 Q6.96 12.59 3.94 15.86 Q5.78 12 3.94 8.14 Q6.96 11.41 12 11.24Z" } }
+          ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: root.red; PathSvg { path: "M10.9 12 A1.1 1.1 0 1 1 13.1 12 A1.1 1.1 0 1 1 10.9 12Z" } }
         }
       }
     }
@@ -460,7 +475,18 @@ PanelWindow {
     property bool on: true
     readonly property color fg: containsMouse ? "#FFFFFF" : on ? "#C9C1C4" : "#5A4E53"
     width: 34; height: 34; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 17; color: parent.containsMouse ? "#1A1517" : "transparent" }
+    Rectangle { anchors.fill: parent; radius: height / 2; color: parent.containsMouse ? "#1A1517" : "transparent" }
+  }
+
+  // the number beside the sound / brightness icon: its digits (not its line box) centred on the icon
+  component Level: Text {
+    id: lv
+    x: 32
+    // how far the digits' own middle sits from the line box's middle
+    readonly property real optical: height / 2 - (lvFm.ascent + lvTm.tightBoundingRect.y + lvTm.tightBoundingRect.height / 2)
+    font { family: root.mono; pixelSize: 12; bold: true }
+    FontMetrics { id: lvFm; font: lv.font }
+    TextMetrics { id: lvTm; font: lv.font; text: "0" }
   }
 
   component Icon: Shape {

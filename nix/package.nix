@@ -1,9 +1,9 @@
-{ lib, stdenvNoCC, makeWrapper, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock }:
+{ lib, stdenvNoCC, makeWrapper, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock, brightnessctl }:
 
 let
   # what the shell calls at runtime; hyprctl / systemctl / loginctl come from the system.
   # nm-connection-editor (networkmanagerapplet) and blueman-manager open from the bar's icons.
-  path = lib.makeBinPath [ quickshell cava networkmanager networkmanagerapplet blueman power-profiles-daemon curl poppler-utils procps hyprlock ];
+  path = lib.makeBinPath [ quickshell cava networkmanager networkmanagerapplet blueman power-profiles-daemon curl poppler-utils procps hyprlock brightnessctl ];
 in
 stdenvNoCC.mkDerivation {
   pname = "pharnavos";

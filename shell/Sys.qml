@@ -82,6 +82,25 @@ Singleton {
     }
   }
   Timer { interval: 1000; running: true; repeat: true; onTriggered: netdev.reload() }
+  // screen backlight (laptops): "" when there's none. Written through brightnessctl (logind, no root needed);
+  // the bar, the slider and the brightness keys (`pharnavos ipc call brightness up|down`) all go through setBright
+  property string backlight: ""
+  property real bright: 0
+  Process { running: true; command: ["sh", "-c", "ls -d /sys/class/backlight/* 2>/dev/null | head -1"]; stdout: StdioCollector { onStreamFinished: root.backlight = text.trim() } }
+  FileView { id: blMax; path: root.backlight ? root.backlight + "/max_brightness" : "" }
+  FileView { id: blCur; path: root.backlight ? root.backlight + "/brightness" : ""; onLoaded: if (!blSet.running) root.bright = Number(text()) / Math.max(1, Number(blMax.text())) }
+  Process { id: blSet }
+  function setBright(f) {
+    if (!backlight) return;
+    bright = Math.max(0.01, Math.min(1, f));
+    blSet.exec(["brightnessctl", "-q", "set", Math.round(bright * 100) + "%"]);
+    Rice.brightness(Math.round(bright * 100));
+  }
+  IpcHandler {
+    target: "brightness"
+    function up(): void { root.setBright(root.bright + 0.05) }
+    function down(): void { root.setBright(root.bright - 0.05) }
+  }
   function rate(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + " MB/s" : b >= 1024 ? Math.round(b / 1024) + " KB/s" : Math.round(b) + " B/s" }
 
   function setProfile(p) { profile = p; ppSet.exec(["powerprofilesctl", "set", p]) }
@@ -94,7 +113,7 @@ Singleton {
     interval: 2000; running: true; repeat: true; triggeredOnStart: true
     property int n: 0
     onTriggered: {
-      stat.reload(); mem.reload(); route.reload();
+      stat.reload(); mem.reload(); route.reload(); if (root.backlight) blCur.reload();
       if (n++ % 5 === 0) { net.running = true; pp.running = Rice.power; wifi.running = true; }
     }
   }
