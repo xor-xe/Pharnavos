@@ -42,17 +42,28 @@ PanelWindow {
   Connections {
     target: Hyprland
     function onRawEvent(e) {
+      // the workspace on show and each window's workspace, straight from the events: Hyprland's own
+      // state can lag a fast Super+1, Super+2, Super+Q by a moment
+      const a = e.data.split(",");
+      if (e.name === "focusedmonv2") { wc.focusedMon = a[0]; if (a[0] === wc.screen.name) wc.ws = Number(a[1]) }
+      else if (e.name === "workspacev2" && wc.focusedMon === wc.screen.name) wc.ws = Number(a[0]);
+      else if (e.name === "movewindowv2" && wc.geo[a[0]]) wc.geo[a[0]].ws = Number(a[1]);
       if (e.name === "closewindow") wc.burst(wc.geo[e.data]);
       // throttle, not debounce: Firefox's stream of title events would postpone a restart() forever
-      else { Hyprland.refreshToplevels(); if (snap.running) wc.again = true; else snap.start() }
+      else { Hyprland.refreshToplevels(); if (snap.running) wc.again = true; else snap.start(); settle.restart() }
     }
   }
+  // Hyprland reports a window's place as the event happens, before it has slid / resized into it (a
+  // second window tiling in, a move to another workspace): look again once things have come to rest
+  Timer { id: settle; interval: 800; onTriggered: { Hyprland.refreshToplevels(); if (snap.running) wc.again = true; else snap.start() } }
 
+  property int ws: mon?.activeWorkspace?.id ?? -1
+  property string focusedMon: Hyprland.focusedMonitor?.name ?? ""
   property var queue: []    // rects waiting for the particle scene to be built
   function burst(r) {
     if (!r) return console.info("pharnavos-close: no geometry cached");
-    if (r.full || !wc.mon || r.mon !== wc.mon.id || r.ws !== wc.mon.activeWorkspace?.id)
-      return console.info("pharnavos-close: skipped", JSON.stringify(r), "monitor", wc.mon?.id, "workspace", wc.mon?.activeWorkspace?.id);
+    if (r.full || r.ws !== wc.ws)   // a workspace lives on one monitor: on show here = this screen
+      return console.info("pharnavos-close: skipped", JSON.stringify(r), "on", wc.screen.name, "showing workspace", wc.ws);
     if (r.w < 160 || r.h < 120) return;      // menus, tooltips, small dialogs
     hide.restart();
     if (fx.item) fx.item.fire(r);
