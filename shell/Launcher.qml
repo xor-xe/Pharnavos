@@ -110,7 +110,8 @@ PanelWindow {
     if (pfx !== "+") return [];
     if (!body) return [{ action: "update", name: Rice.t("ყველაფრის განახლება", "Update everything"), desc: Rice.t("NixOS-ის და ყველა პროგრამის უახლესი ვერსიები", "The newest NixOS and every app") },
                        { action: "undo", name: Rice.t("ბოლო ცვლილების გაუქმება", "Undo the last change"), desc: Rice.t("სისტემა ბრუნდება ბოლო დაყენებამდე, წაშლამდე ან განახლებამდე", "Back to before the last install, removal or update") }];
-    return Apps.results.map(r => Object.assign({ have: Apps.installed.some(a => a.name === r.name) }, r));
+    // have: installed from here; there: on the system already (your configuration installs it)
+    return Apps.results.map(r => Object.assign({ have: Apps.installed.some(a => a.name === r.name), there: Apps.onSystem(r.name) }, r));
   }
   onBodyChanged: if (pfx === "+") Apps.find(body)
   onPfxChanged: { confirm = ""; if (pfx === "+") Apps.find(body) }
@@ -191,7 +192,7 @@ PanelWindow {
   function enter() {
     if (!pfx) { if (pick) launch(pick); else if (body) web(body); return }
     if (pkgMode) {
-      if (!pkg || pkg.have && pfx === "+" || Apps.busy) return;
+      if (!pkg || (pkg.have || pkg.there) && pfx === "+" || Apps.busy) return;
       if (pkg.action) Apps.run(pkg.action);
       else if (pfx === "-") Apps.run("remove", pkg.name);
       else if (pkg.unfree && confirm !== pkg.name) { confirm = pkg.name; return }
@@ -252,7 +253,7 @@ PanelWindow {
           Text {
             visible: !parent.text
             // only the prefixes that exist (? and # need programs.pharnavos.ai)
-            text: Rice.t("რას ეძებ?  ·  ", "Search…  ·  ") + lw.prefixes.split("").map(k => k + " " + ({ "=": Rice.t("გამოთვლა", "calc"), ">": Rice.t("ბრძანება", "run"), "?": Rice.t("კითხვა", "ask"), "@": Rice.t("ფანჯრები", "windows"), "#": Rice.t("თარგმნა", "translate"), "!": Rice.t("ვები", "web") })[k]).join("  ")
+            text: Rice.t("რას ეძებ?  ·  ", "Search…  ·  ") + lw.prefixes.split("").map(k => k + " " + ({ "=": Rice.t("გამოთვლა", "calc"), ">": Rice.t("ბრძანება", "run"), "?": Rice.t("კითხვა", "ask"), "@": Rice.t("ფანჯრები", "windows"), "#": Rice.t("თარგმნა", "translate"), "!": Rice.t("ვები", "web"), "+": Rice.t("დაყენება", "install"), "-": Rice.t("წაშლა", "remove") })[k]).join("  ")
             color: "#5A5055"; font: parent.font; elide: Text.ElideRight; width: parent.width
           }
           Keys.onPressed: ev => {
@@ -403,6 +404,7 @@ PanelWindow {
               required property var modelData
               required property int index
               readonly property bool on: index === lw.selI
+              readonly property bool taken: lw.pfx === "+" && (modelData.have || modelData.there)
               width: parent.width; height: 48; hoverEnabled: true
               onPositionChanged: m => lw.hover(prow, m, index)
               onClicked: { lw.sel = index; lw.enter() }
@@ -410,7 +412,7 @@ PanelWindow {
               Stitch { anchors.fill: parent; inset: 1; stroke: 2; thread: lw.modeColor; opacity: prow.on ? 1 : 0 }
               Column {
                 x: 14; width: parent.width - 130; anchors.verticalCenter: parent.verticalCenter
-                Text { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: prow.modelData.name; color: prow.modelData.have && lw.pfx === "+" ? lw.grey : lw.cream; font { family: Theme.sans; pixelSize: 15; bold: true } }
+                Text { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: prow.modelData.name; color: prow.taken ? lw.grey : lw.cream; font { family: Theme.sans; pixelSize: 15; bold: true } }
                 Text {
                   width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; color: lw.grey; font { family: Theme.mono; pixelSize: 11 }
                   text: prow.modelData.action ? "" : [prow.modelData.version, prow.modelData.unfree ? Rice.t("არათავისუფალი", "unfree") : "", prow.modelData.desc].filter(x => x).join(" · ")
@@ -419,8 +421,8 @@ PanelWindow {
               }
               Text {
                 anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
-                text: prow.modelData.have && lw.pfx === "+" ? Rice.t("დაყენებულია", "installed") : prow.on ? "↵ " + lw.modes[lw.pfx][0] : ""
-                color: prow.modelData.have && lw.pfx === "+" ? lw.grey : lw.modeColor; font { family: Theme.mono; pixelSize: 11; bold: true }
+                text: !prow.taken ? (prow.on ? "↵" + (prow.modelData.action ? "" : " " + lw.modes[lw.pfx][0]) : "") : prow.modelData.have ? Rice.t("დაყენებულია", "installed") : Rice.t("უკვე სისტემაშია", "already on your system")
+                color: prow.taken ? lw.grey : lw.modeColor; font { family: Theme.mono; pixelSize: 11; bold: true }
               }
             }
           }
@@ -461,6 +463,7 @@ PanelWindow {
               width: parent.width; wrapMode: Text.Wrap; color: lw.grey; lineHeight: 1.4; font { family: Theme.mono; pixelSize: 11 }
               text: Apps.busy ? Rice.t("ჯერ წინა ცვლილება სრულდება…", "Still finishing the last change…")
                 : lw.pkg?.have && lw.pfx === "+" ? Rice.t("უკვე დაყენებულია", "Already installed")
+                : lw.pkg?.there && lw.pfx === "+" ? Rice.t("უკვე სისტემაშია: შენი კონფიგურაცია აყენებს.", "Already on your system: your configuration installs it.")
                 : Rice.t("სისტემა თავიდან აიწყობა (რამდენიმე წუთი), პაროლს ერთხელ იკითხავს. მერე: ბოლო ცვლილების გაუქმება.", "The system rebuilds (a few minutes) and asks for your password once. Undo it later with + → Undo.")
             }
           }

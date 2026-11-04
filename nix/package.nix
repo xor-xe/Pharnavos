@@ -20,8 +20,19 @@ stdenvNoCC.mkDerivation {
     cp -r . $share
 
     # `pharnavos` runs the shell; `pharnavos ipc call launcher toggle` etc. talk to it
-    makeWrapper ${quickshell}/bin/qs $out/bin/pharnavos \
+    mkdir -p $out/libexec
+    makeWrapper ${quickshell}/bin/qs $out/libexec/pharnavos \
       --add-flags "-p $share/shell.qml" --prefix PATH : ${path} --set PHARNAVOS_APPS ${lib.getExe apps}
+    # ipc goes to the running shell by its pid: after an update (which doesn't restart it) the running
+    # shell is the previous version, which the new one can't find by its path
+    cat > $out/bin/pharnavos <<EOF
+    #!/bin/sh
+    if [ "\$1" = ipc ] && pid=\$(systemctl --user show -p MainPID --value pharnavos 2>/dev/null) && [ "\''${pid:-0}" != 0 ]; then
+      shift; exec $out/libexec/pharnavos ipc --pid "\$pid" "\$@"
+    fi
+    exec $out/libexec/pharnavos "\$@"
+    EOF
+    chmod +x $out/bin/pharnavos
     ln -s ${lib.getExe apps} $out/bin/pharnavos-apps
 
     # the lock screen runs as its own instance, so a crash of the shell can't unlock you; if the

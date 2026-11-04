@@ -296,6 +296,9 @@ in
         Description = "Pharnavos desktop shell";
         PartOf = [ config.wayland.systemd.target ];
         After = [ config.wayland.systemd.target ];
+        # a rebuild doesn't restart the running shell (it may be the one watching that rebuild, from
+        # the launcher's "update"); a new version starts at the next login, or with systemctl --user restart
+        X-RestartIfChanged = false;
       };
       Service = {
         ExecStart = "${bin}/pharnavos";

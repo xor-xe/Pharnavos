@@ -1,6 +1,6 @@
 # pharnavos-apps: installs apps from the launcher. The apps live in apps.json in the system's flake,
 # which the NixOS module reads (programs.pharnavos.apps); the installer sets it up in /etc/nixos.
-#   as you:          index | search WORD | outdated
+#   as you:          index | search WORD | outdated | system
 #   as root (pkexec): install NAME [--unfree] | remove NAME | update | undo
 
 export PATH=$PATH:/run/current-system/sw/bin   # nix, nixos-rebuild: the system's own
@@ -66,6 +66,8 @@ case ${1:-} in
     mv "$index.tmp" "$index"
     ;;
   search) grep -i -F -m 400 -- "$2" "$index" || true ;;
+  # the names of the packages on the system now (from your configuration and from the launcher)
+  system) nix-store -q --references /run/current-system/sw | sed 's|^/nix/store/[^-]*-||; s/-[0-9].*$//' | sort -u ;;
   # a newer NixOS than the one installed? (one small download)
   outdated)
     rev=$(jq -r '.nodes.nixpkgs.locked.rev // empty' "$etc/flake.lock" 2>/dev/null) ch=$(channel)
@@ -96,7 +98,11 @@ case ${1:-} in
     # shellcheck disable=SC2086  # the input names, one word each
     nix flake update $update --flake "$etc" 2>&1 || die "Couldn't reach the update servers."
     rebuild || { restore; die "The update failed; nothing changed."; }
-    nix store diff-closures "$old" "$(readlink -f /run/current-system)" | sed 's/\x1b\[[0-9;]*m//g; s/^/CHANGE /'
+    new=$(readlink -f /run/current-system)
+    nix store diff-closures "$old" "$new" | sed 's/\x1b\[[0-9;]*m//g; s/^/CHANGE /'
+    # its version number rarely moves, so compare the package itself
+    shell() { nix-store -qR "$1" | grep -E -- '-pharnavos-[0-9][^/]*$' || true; }
+    if [ "$(shell "$old")" != "$(shell "$new")" ]; then echo "CHANGE pharnavos: new version"; fi
     ;;
   # back to before the last change; run again to redo it
   undo)
@@ -106,5 +112,5 @@ case ${1:-} in
     rebuild || { cp "$tmp"/* "$etc/"; own; die "Undo failed; nothing changed."; }
     cp "$tmp"/* $prev/
     ;;
-  *) die "usage: pharnavos-apps index | search WORD | outdated | install NAME [--unfree] | remove NAME | update | undo" ;;
+  *) die "usage: pharnavos-apps index | search WORD | outdated | system | install NAME [--unfree] | remove NAME | update | undo" ;;
 esac

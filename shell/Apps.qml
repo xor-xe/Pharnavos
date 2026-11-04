@@ -26,6 +26,17 @@ Singleton {
     onLoadFailed: root.managed = false
   }
 
+  // what's on the system already, by package name; an app your configuration installs counts too.
+  // ponytail: matched by name, so a package renamed in your config (vlc vs vlc-bin) isn't recognised
+  property var system: []
+  function onSystem(name) { return system.includes(name.split(".").pop()) }
+  Process {
+    id: sysP
+    command: [root.bin, "system"]
+    stdout: StdioCollector { onStreamFinished: { root.system = text.split("\n").filter(l => l); root.finish() } }
+  }
+  function refresh() { if (on && !sysP.running) sysP.running = true }
+
   // ---- search ------------------------------------------------------------------------------
   property bool indexing: false
   property string query: ""
@@ -39,6 +50,7 @@ Singleton {
   function find(q) {
     query = q.trim().toLowerCase();
     if (!query) { results = []; return }
+    if (!system.length) refresh();
     if (!indexing && !indexP.running) { indexing = true; indexP.running = true; return }
     if (!indexP.running) debounce.restart();
   }
@@ -76,18 +88,30 @@ Singleton {
     stdout: SplitParser { onRead: l => { if (l.startsWith("CHANGE ")) root.changes = root.changes.concat([l.slice(7)]); else if (l.trim()) root.last = l } }
     stderr: SplitParser { onRead: l => { if (l.trim()) root.last = l } }
     onExited: code => {
-      const n = root.target, ok = code === 0;
+      if (code === 0 && root.job === "update") root.outdated = false;
       // 126/127: the password prompt was dismissed
-      if (code !== 126 && code !== 127) {
-        const title = ok ? ({ install: Rice.t(n + " დაყენდა", n + " is installed"), remove: Rice.t(n + " წაიშალა", n + " was removed"),
-                              update: Rice.t("სისტემა განახლდა", "System updated"), undo: Rice.t("ბოლო ცვლილება გაუქმდა", "Last change undone") })[root.job]
-                         : Rice.t("ვერ მოხერხდა", "That didn't work");
-        const body = ok ? root.changes.filter(c => c.includes("→")).slice(0, 6).join("\n") : root.last;
-        notify.exec(["notify-send", "-a", "Pharnavos", "-i", ok ? "system-software-install" : "dialog-error", title, body]);
-      }
-      if (ok && root.job === "update") root.outdated = false;
+      root.done = code === 126 || code === 127 ? null : { job: root.job, name: root.target, ok: code === 0, last: root.last, changes: root.changes };
       root.job = "";
+      sysP.running = true;    // then finish(): a removed app may still be there from your configuration
     }
+  }
+  property var done: null
+  function finish() {
+    const d = done;
+    if (!d) return;
+    done = null;
+    const n = d.name, kept = d.ok && d.job === "remove" && onSystem(n);
+    const title = !d.ok ? Rice.t("ვერ მოხერხდა", "That didn't work")
+      : kept ? Rice.t(n + " გამშვებიდან მოიხსნა", n + " is off the launcher's list")
+      : ({ install: Rice.t(n + " დაყენდა", n + " is installed"), remove: Rice.t(n + " წაიშალა", n + " was removed"),
+           update: Rice.t("სისტემა განახლდა", "System updated"), undo: Rice.t("ბოლო ცვლილება გაუქმდა", "Last change undone") })[d.job];
+    const body = !d.ok ? d.last
+      : kept ? Rice.t("შენი კონფიგურაცია მაინც აყენებს, ამიტომ დარჩა.", "It's still installed by your configuration.")
+      : d.changes.filter(c => c.includes("→")).slice(0, 6)
+          // the running shell isn't restarted by a rebuild (nix/hm.nix): say when it changed
+          .concat(d.changes.some(c => /^pharnavos[:-]/.test(c)) ? [Rice.t("ფარნავოსი განახლდა: ახალი ვერსია შემდეგ შესვლაზე ჩაირთვება.", "Pharnavos was updated: the new version starts next time you log in.")] : [])
+          .join("\n");
+    notify.exec(["notify-send", "-a", "Pharnavos", "-i", d.ok ? "system-software-install" : "dialog-error", title, body]);
   }
   Process { id: notify }
 
