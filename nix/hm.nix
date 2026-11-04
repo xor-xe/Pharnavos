@@ -70,6 +70,8 @@ let
     layerrule = [ "no_anim on, match:namespace ^(pharnavos-close)$" ];
     # if the lock screen crashes, stay locked and let pharnavos-lock fall back to hyprlock
     misc.allow_session_lock_restore = true;
+    # no "Hyprland updated" / donation pop-ups over the desktop
+    ecosystem = { no_update_news = mkDefault true; no_donation_nag = mkDefault true; };
   };
 
   # the same in home-manager's Lua form: each attribute becomes hl.<name>(…)
@@ -109,6 +111,7 @@ let
         };
       };
       misc.allow_session_lock_restore = true;
+      ecosystem = { no_update_news = mkDefault true; no_donation_nag = mkDefault true; };
     };
     curve = [
       { _args = [ "pharnavosQuick" { type = "bezier"; points = [ [ 0.15 0 ] [ 0.1 1 ] ]; } ]; }

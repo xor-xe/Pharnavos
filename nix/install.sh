@@ -39,8 +39,11 @@ done
 echo
 say "${bold}Pharnavos${off} for ${bold}$user${off} on ${bold}$host${off}"
 [ "$nvidia" != null ] && say "NVIDIA graphics: the proprietary driver comes along"
-say "Your configuration.nix stays; your old desktop stays on the login screen."
+say "Your configuration.nix stays as it is."
+keep=false
 if [ -z "${PHARNAVOS_YES:-}" ]; then
+  read -rp "  Keep KDE / GNOME next to Pharnavos? (no: Pharnavos only, ly login screen) [y/N] " k </dev/tty
+  [[ $k == [Yy]* ]] && keep=true
   read -rp "  Install? [Y/n] " ok </dev/tty
   [[ -z $ok || $ok == [Yy]* ]] || die "Nothing changed."
 fi
@@ -62,6 +65,7 @@ cat >"$etc/flake.nix" <<EOF
     nixosConfigurations."$host" = pharnavos.lib.system {
       user = "$user";
       nvidia = $nvidia;
+      keepDesktop = $keep;   # true: KDE / GNOME stay on the login screen next to Pharnavos
       apps = ./apps.json;   # apps installed from the launcher
       modules = [ ./configuration.nix ];
     };
@@ -78,4 +82,7 @@ if ! nixos-rebuild boot --flake "$etc#$host"; then
 fi
 echo
 say "${bold}Done.${off} Reboot, then log in: Pharnavos is the default session."
+if [ "$keep" = false ]; then
+  say "KDE / GNOME are off now; to bring them back, set keepDesktop = true; in $etc/flake.nix and rebuild."
+fi
 say "Your old setup is saved in $backup; the previous system stays in the boot menu."

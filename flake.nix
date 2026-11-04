@@ -28,8 +28,10 @@
 
       # an existing NixOS (its configuration.nix in `modules`) with Pharnavos on top; what the installer writes.
       # apps: a JSON list of the apps installed from the launcher ([{"name": "vlc"}, …])
-      lib.system = { user, nvidia ? null, apps ? null, modules }: nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit user nvidia apps; };
+      # keepDesktop: KDE / GNOME stay next to Pharnavos (their login screen too); otherwise they go and
+      # ly (with a matrix rain) is the login screen
+      lib.system = { user, nvidia ? null, apps ? null, keepDesktop ? false, modules }: nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit user nvidia apps keepDesktop; };
         modules = modules ++ [ (import ./nix/install.nix self) ];
       };
 

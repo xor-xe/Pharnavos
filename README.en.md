@@ -59,9 +59,10 @@ wallpaper reads Wardrop's Rustaveli and Hewitt's Vazha-Pshavela.
 sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Pharnavos#install
 ```
 
-Press Enter, wait a few minutes, reboot and log in. Your `configuration.nix` stays as it is (a small
-`flake.nix` next to it adds Pharnavos), your old desktop stays on the login screen, and `/etc/nixos`
-is backed up first. NVIDIA graphics get their driver. To change your system later, edit
+Answer two questions, wait a few minutes, reboot and log in. Your `configuration.nix` stays as it is
+(a small `flake.nix` next to it adds Pharnavos) and `/etc/nixos` is backed up first. KDE or GNOME is
+replaced: Pharnavos is the only desktop and ly, with a red matrix rain, is the login screen; answer
+yes to the first question to keep them next to Pharnavos instead. NVIDIA graphics get their driver. To change your system later, edit
 `configuration.nix` and run `sudo nixos-rebuild switch` as usual.
 
 <details>
