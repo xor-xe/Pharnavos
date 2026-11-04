@@ -88,7 +88,6 @@ Singleton {
     stdout: SplitParser { onRead: l => { if (l.startsWith("CHANGE ")) root.changes = root.changes.concat([l.slice(7)]); else if (l.trim()) root.last = l } }
     stderr: SplitParser { onRead: l => { if (l.trim()) root.last = l } }
     onExited: code => {
-      if (code === 0 && root.job === "update") root.outdated = false;
       // 126/127: the password prompt was dismissed
       root.done = code === 126 || code === 127 ? null : { job: root.job, name: root.target, ok: code === 0, last: root.last, changes: root.changes };
       root.job = "";
@@ -114,9 +113,4 @@ Singleton {
     notify.exec(["notify-send", "-a", "Pharnavos", "-i", d.ok ? "system-software-install" : "dialog-error", title, body]);
   }
   Process { id: notify }
-
-  // ---- a newer NixOS? once a day, one small download -----------------------------------------
-  property bool outdated: false
-  Process { id: outP; command: [root.bin, "outdated"]; stdout: StdioCollector { onStreamFinished: root.outdated = text.trim() === "yes" } }
-  Timer { interval: 24 * 3600 * 1000; repeat: true; triggeredOnStart: true; running: root.on; onTriggered: outP.running = true }
 }

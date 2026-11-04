@@ -444,8 +444,6 @@ PanelWindow {
           ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: root.red; PathSvg { path: "M11.24 12 Q11.41 6.96 8.14 3.94 Q12 5.78 15.86 3.94 Q12.59 6.96 12.76 12ZM12 11.24 Q17.04 11.41 20.06 8.14 Q18.22 12 20.06 15.86 Q17.04 12.59 12 12.76ZM12.76 12 Q12.59 17.04 15.86 20.06 Q12 18.22 8.14 20.06 Q11.41 17.04 11.24 12ZM12 12.76 Q6.96 12.59 3.94 15.86 Q5.78 12 3.94 8.14 Q6.96 11.41 12 11.24Z" } }
           ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: root.red; PathSvg { path: "M10.9 12 A1.1 1.1 0 1 1 13.1 12 A1.1 1.1 0 1 1 10.9 12Z" } }
         }
-        // a newer NixOS is out: "update" in the launcher
-        Rectangle { visible: Apps.outdated && !Apps.busy; x: 29; y: 2; width: 9; height: 9; radius: 5; color: "#5FBF77"; border { width: 2; color: "#0E0B0D" } }
       }
     }
   }

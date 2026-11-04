@@ -1,6 +1,6 @@
 # pharnavos-apps: installs apps from the launcher. The apps live in apps.json in the system's flake,
 # which the NixOS module reads (programs.pharnavos.apps); the installer sets it up in /etc/nixos.
-#   as you:          index | search WORD | outdated | system
+#   as you:          index | search WORD | system
 #   as root (pkexec): install NAME [--unfree] | remove NAME | update | undo
 
 export PATH=$PATH:/run/current-system/sw/bin   # nix, nixos-rebuild: the system's own
@@ -68,13 +68,6 @@ case ${1:-} in
   search) grep -i -F -m 400 -- "$2" "$index" || true ;;
   # the names of the packages on the system now (from your configuration and from the launcher)
   system) nix-store -q --references /run/current-system/sw | sed 's|^/nix/store/[^-]*-||; s/-[0-9].*$//' | sort -u ;;
-  # a newer NixOS than the one installed? (one small download)
-  outdated)
-    rev=$(jq -r '.nodes.nixpkgs.locked.rev // empty' "$etc/flake.lock" 2>/dev/null) ch=$(channel)
-    [ -n "$rev" ] && [ -n "$ch" ] || exit 0
-    new=$(curl -fsL "https://channels.nixos.org/$ch/git-revision") || exit 0
-    if [ "$new" != "$rev" ]; then echo yes; fi
-    ;;
 
   install)
     root; name "$2"; if has "$2"; then die "$2 is already installed."; fi
@@ -112,5 +105,5 @@ case ${1:-} in
     rebuild || { cp "$tmp"/* "$etc/"; own; die "Undo failed; nothing changed."; }
     cp "$tmp"/* $prev/
     ;;
-  *) die "usage: pharnavos-apps index | search WORD | outdated | system | install NAME [--unfree] | remove NAME | update | undo" ;;
+  *) die "usage: pharnavos-apps index | search WORD | system | install NAME [--unfree] | remove NAME | update | undo" ;;
 esac
