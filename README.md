@@ -65,6 +65,27 @@ sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Ph
 მოგვიანებით სისტემის შესაცვლელად ჩვეულებრივად შეცვალე `configuration.nix` და გაუშვი
 `sudo nixos-rebuild switch`.
 
+<details>
+<summary><b>დაყენების შემდეგ: პროგრამები, ქსელი და სხვა</b></summary>
+
+ყველაფერი `/etc/nixos/configuration.nix`-ში იწერება, როგორც ნებისმიერ NixOS-ზე. პაკეტების სახელები
+მოძებნე [search.nixos.org](https://search.nixos.org/packages)-ზე, დაამატე და გაუშვი
+`sudo nixos-rebuild switch`:
+
+```nix
+environment.systemPackages = with pkgs; [ brave vlc ];
+
+networking.hostName = "laptop";
+networking.firewall.allowedTCPPorts = [ 8080 ];
+
+services.xserver.xkb.layout = "us,de";   # კლავიატურის დამატებითი განლაგებები; ქართული თავისით ემატება
+```
+
+არათავისუფალ პროგრამებს (Chrome, Steam, Discord) ასევე სჭირდება `nixpkgs.config.allowUnfree = true;`.
+თუ ცვლილებამ რამე გააფუჭა, ჩატვირთვის მენიუში წინა სისტემა აირჩიე.
+
+</details>
+
 ხელით აწყობისთვის, განაგრძე კითხვა.
 
 > [!NOTE]

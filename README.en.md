@@ -64,6 +64,26 @@ Press Enter, wait a few minutes, reboot and log in. Your `configuration.nix` sta
 is backed up first. NVIDIA graphics get their driver. To change your system later, edit
 `configuration.nix` and run `sudo nixos-rebuild switch` as usual.
 
+<details>
+<summary><b>After installing: apps, network, anything else</b></summary>
+
+Everything goes in `/etc/nixos/configuration.nix`, as on any NixOS. Find package names on
+[search.nixos.org](https://search.nixos.org/packages), add them, then run `sudo nixos-rebuild switch`:
+
+```nix
+environment.systemPackages = with pkgs; [ brave vlc ];
+
+networking.hostName = "laptop";
+networking.firewall.allowedTCPPorts = [ 8080 ];
+
+services.xserver.xkb.layout = "us,de";   # more keyboard layouts; Georgian is added for you
+```
+
+Apps that aren't free software (Chrome, Steam, Discord) also need `nixpkgs.config.allowUnfree = true;`.
+If a change breaks something, pick the previous system in the boot menu.
+
+</details>
+
 For a hand-made setup, read on.
 
 > [!NOTE]
