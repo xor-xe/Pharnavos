@@ -1,0 +1,4 @@
+[
+  { "name": "vlc" },
+  { "name": "google-chrome", "unfree": true }
+]

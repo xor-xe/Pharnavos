@@ -67,7 +67,11 @@ is backed up first. NVIDIA graphics get their driver. To change your system late
 <details>
 <summary><b>After installing: apps, network, anything else</b></summary>
 
-Everything goes in `/etc/nixos/configuration.nix`, as on any NixOS. Find package names on
+The quickest way is the launcher: type `install vlc` (or `+vlc`), `remove vlc`, or `update` for the
+whole system; it asks for your password once and tells you when it's done. Apps installed this way are
+listed in `/etc/nixos/apps.json`.
+
+Everything else goes in `/etc/nixos/configuration.nix`, as on any NixOS. Find package names on
 [search.nixos.org](https://search.nixos.org/packages), add them, then run `sudo nixos-rebuild switch`:
 
 ```nix

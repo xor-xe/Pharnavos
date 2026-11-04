@@ -1,6 +1,7 @@
 // Launcher (LauncherPro): embroidered list + side pane for the selected app. Plain text searches apps
 // (Georgian keyboard input matches Latin names); prefixes switch mode:
 //   = calc   > run   ? ask (local ollama)   @ windows   # translate KA⇄EN (local)   ! web
+//   + install an app ("install vlc"; alone: update, undo)   - remove one ("remove vlc")
 import QtQuick
 import QtQuick.Shapes
 import Quickshell
@@ -49,12 +50,16 @@ PanelWindow {
 
   // ---- data --------------------------------------------------------------------------------
   readonly property string q: query.text
-  readonly property string prefixes: Rice.ai ? "=>?@#!" : "=>@!"      // ? and # only with AI on
-  readonly property string pfx: prefixes.includes(q.charAt(0)) && q.length ? q.charAt(0) : ""
-  readonly property string body: pfx ? q.slice(1).trim() : q.trim()
+  // ? and # only with AI on, + and - only on a system the one-command installer set up
+  readonly property string prefixes: (Rice.ai ? "=>?@#!" : "=>@!") + (Apps.on ? "+-" : "")
+  // the same as words: "install vlc", "remove vlc", "update", "undo"
+  readonly property string word: !Apps.on ? "" : /^install\s/i.test(q) ? "+" : /^(remove|uninstall)\s/i.test(q) ? "-" : /^\s*(update|undo)\s*$/i.test(q) ? "+" : ""
+  readonly property string pfx: word || (prefixes.includes(q.charAt(0)) && q.length ? q.charAt(0) : "")
+  readonly property string body: word ? q.trim().replace(/^(install|remove|uninstall|update|undo)\s*/i, "") : pfx ? q.slice(1).trim() : q.trim()
   readonly property var modes: ({
     "": [Rice.t("აპები", "apps"), "apps", Theme.red], "=": [Rice.t("გამოთვლა", "calc"), "calc", Theme.cream], ">": [Rice.t("ბრძანება", "run"), "run", "#FFFFFF"],
-    "?": [Rice.t("ჰკითხე", "ask"), "ask", "#2FA5A0"], "@": [Rice.t("ფანჯრები", "windows"), "windows", Theme.red], "#": [Rice.t("თარგმნა", "translate"), "translate", "#A880F0"], "!": [Rice.t("ვებში", "web"), "web", "#3FA9E0"]
+    "?": [Rice.t("ჰკითხე", "ask"), "ask", "#2FA5A0"], "@": [Rice.t("ფანჯრები", "windows"), "windows", Theme.red], "#": [Rice.t("თარგმნა", "translate"), "translate", "#A880F0"], "!": [Rice.t("ვებში", "web"), "web", "#3FA9E0"],
+    "+": [Rice.t("დაყენება", "install"), "install", "#5FBF77"], "-": [Rice.t("წაშლა", "remove"), "remove", Theme.red]
   })
   readonly property color modeColor: modes[pfx][2]
 
@@ -98,7 +103,28 @@ PanelWindow {
   readonly property var winRows: pfx !== "@" ? [] : Hyprland.toplevels.values
     .map(t => ({ t, cls: t.lastIpcObject?.class ?? "", title: t.title ?? "", ws: t.workspace?.name ?? "" }))
     .filter(w => !body || translit(w.cls + w.title).includes(translit(body)) || (w.cls + w.title).toLowerCase().includes(body.toLowerCase()))
-  readonly property int count: pfx === "@" ? winRows.length : appRows.length
+  // + and -: NixOS packages to install, or the ones installed from here
+  readonly property bool pkgMode: pfx === "+" || pfx === "-"
+  readonly property var pkgRows: {
+    if (pfx === "-") return Apps.installed.filter(a => !body || a.name.toLowerCase().includes(body.toLowerCase())).slice(0, 8).map(a => ({ name: a.name, unfree: !!a.unfree, have: true, desc: "" }));
+    if (pfx !== "+") return [];
+    if (!body) return [{ action: "update", name: Rice.t("ყველაფრის განახლება", "Update everything"), desc: Rice.t("NixOS-ის და ყველა პროგრამის უახლესი ვერსიები", "The newest NixOS and every app") },
+                       { action: "undo", name: Rice.t("ბოლო ცვლილების გაუქმება", "Undo the last change"), desc: Rice.t("სისტემა ბრუნდება ბოლო დაყენებამდე, წაშლამდე ან განახლებამდე", "Back to before the last install, removal or update") }];
+    return Apps.results.map(r => Object.assign({ have: Apps.installed.some(a => a.name === r.name) }, r));
+  }
+  onBodyChanged: if (pfx === "+") Apps.find(body)
+  onPfxChanged: { confirm = ""; if (pfx === "+") Apps.find(body) }
+  property string confirm: ""    // an unfree app: Enter once more to allow it
+  readonly property var pkg: pkgMode && pkgRows.length ? pkgRows[selI] : null
+  // only a moving mouse selects a row: rows appearing or sliding under a still pointer while typing
+  // don't (Enter would launch whatever happened to land under it)
+  property var ptr: null
+  function hover(item, m, index) {
+    const p = item.mapToItem(null, m.x, m.y), moved = ptr !== null && (p.x !== ptr.x || p.y !== ptr.y);
+    ptr = p;
+    if (moved) sel = index;
+  }
+  readonly property int count: pfx === "@" ? winRows.length : pkgMode ? pkgRows.length : appRows.length
   property int sel: 0
   readonly property int selI: count ? Math.min(sel, count - 1) : 0
   // first visible row when there are more than 8: moves only as far as needed to keep the selection in view
@@ -164,6 +190,14 @@ PanelWindow {
 
   function enter() {
     if (!pfx) { if (pick) launch(pick); else if (body) web(body); return }
+    if (pkgMode) {
+      if (!pkg || pkg.have && pfx === "+" || Apps.busy) return;
+      if (pkg.action) Apps.run(pkg.action);
+      else if (pfx === "-") Apps.run("remove", pkg.name);
+      else if (pkg.unfree && confirm !== pkg.name) { confirm = pkg.name; return }
+      else Apps.run("install", pkg.name, pkg.unfree);
+      close(); return;
+    }
     if (pfx === "@") { if (winRows.length) focusWin(winRows[selI].t); return }
     if (!body) return;
     if (pfx === "=") { if (calc && calc !== "…") { Quickshell.clipboardText = calc; close() } return }
@@ -266,13 +300,13 @@ PanelWindow {
           id: listCol
           width: 540; spacing: 6
           Text {
-            text: lw.pfx === "@" ? Rice.t("ფანჯრები — OPEN WINDOWS", "OPEN WINDOWS") : lw.pfx ? Rice.t("შედეგი — RESULT", "RESULT") : lw.body ? Rice.t("აპები — APPS", "APPS") : Rice.t("ხშირად — FREQUENT", "FREQUENT")
+            text: lw.pfx === "+" ? (lw.body ? Rice.t("NixOS-დან — FROM NIXOS", "FROM NIXOS") : Rice.t("სისტემა — SYSTEM", "SYSTEM")) : lw.pfx === "-" ? Rice.t("გამშვებიდან დაყენებული — INSTALLED HERE", "INSTALLED HERE") : lw.pfx === "@" ? Rice.t("ფანჯრები — OPEN WINDOWS", "OPEN WINDOWS") : lw.pfx ? Rice.t("შედეგი — RESULT", "RESULT") : lw.body ? Rice.t("აპები — APPS", "APPS") : Rice.t("ხშირად — FREQUENT", "FREQUENT")
             color: lw.grey; font { family: Theme.sans; pixelSize: 10; weight: Font.Black; letterSpacing: 1.6 }
           }
 
           // special result card for the prefix modes
           Rectangle {
-            visible: lw.pfx !== "" && lw.pfx !== "@"
+            visible: lw.pfx !== "" && lw.pfx !== "@" && !lw.pkgMode
             width: parent.width; height: visible ? special.implicitHeight + 28 : 0; radius: 4; color: "transparent"
             Stitch { anchors.fill: parent; inset: 1; stroke: 2; thread: lw.modeColor }
             Column {
@@ -326,8 +360,7 @@ PanelWindow {
                     Behavior on opacity { NumberAnimation { duration: 110 } }
                     NumberAnimation on crawl { from: 0; to: 2.5; duration: 900; loops: Animation.Infinite; running: row.on && lw.mapped }
                   }
-                  // only real mouse movement selects: rows sliding under a still cursor while typing don't
-                  onPositionChanged: if (lw.sel !== index) lw.sel = index
+                  onPositionChanged: m => lw.hover(row, m, index)
                   onClicked: isWin ? lw.focusWin(modelData.t) : lw.launch(modelData.e)
                   Image {
                     x: 10; anchors.verticalCenter: parent.verticalCenter; width: 32; height: 32; sourceSize: Qt.size(64, 64); mipmap: true
@@ -362,6 +395,42 @@ PanelWindow {
               }
             }
           }
+          // + / -: packages, stitched green (install) or red (remove) when selected
+          Repeater {
+            model: lw.pkgRows
+            MouseArea {
+              id: prow
+              required property var modelData
+              required property int index
+              readonly property bool on: index === lw.selI
+              width: parent.width; height: 48; hoverEnabled: true
+              onPositionChanged: m => lw.hover(prow, m, index)
+              onClicked: { lw.sel = index; lw.enter() }
+              Rectangle { anchors.fill: parent; radius: 4; color: lw.modeColor; opacity: prow.on ? 0.07 : 0 }
+              Stitch { anchors.fill: parent; inset: 1; stroke: 2; thread: lw.modeColor; opacity: prow.on ? 1 : 0 }
+              Column {
+                x: 14; width: parent.width - 130; anchors.verticalCenter: parent.verticalCenter
+                Text { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: prow.modelData.name; color: prow.modelData.have && lw.pfx === "+" ? lw.grey : lw.cream; font { family: Theme.sans; pixelSize: 15; bold: true } }
+                Text {
+                  width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; color: lw.grey; font { family: Theme.mono; pixelSize: 11 }
+                  text: prow.modelData.action ? "" : [prow.modelData.version, prow.modelData.unfree ? Rice.t("არათავისუფალი", "unfree") : "", prow.modelData.desc].filter(x => x).join(" · ")
+                  visible: text !== ""
+                }
+              }
+              Text {
+                anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+                text: prow.modelData.have && lw.pfx === "+" ? Rice.t("დაყენებულია", "installed") : prow.on ? "↵ " + lw.modes[lw.pfx][0] : ""
+                color: prow.modelData.have && lw.pfx === "+" ? lw.grey : lw.modeColor; font { family: Theme.mono; pixelSize: 11; bold: true }
+              }
+            }
+          }
+          Text {
+            visible: lw.pkgMode && !lw.pkgRows.length
+            width: parent.width; wrapMode: Text.Wrap; padding: 12; color: lw.grey; font { family: Theme.sans; pixelSize: 13; bold: true }
+            text: lw.pfx === "-" ? Rice.t("აქედან დაყენებული პროგრამა ვერ ვიპოვე", "No app installed from here matches")
+                : Apps.indexing ? Rice.t("პროგრამების სიას ვტვირთავ (მხოლოდ პირველად, ~30 წმ)…", "Getting the list of apps (first time only, ~30 s)…")
+                : Rice.t("NixOS-ში ასეთი პროგრამა ვერ ვიპოვე", "No NixOS app matches")
+          }
           Text {
             visible: !lw.pfx && lw.body && !lw.appRows.length
             text: Rice.t("ვერაფერი ვიპოვე — Enter ეძებს ვებში", "Nothing found — Enter searches the web"); color: lw.grey; padding: 12; font { family: Theme.sans; pixelSize: 13; bold: true }
@@ -373,6 +442,28 @@ PanelWindow {
           width: col.width - listCol.width - 18; height: listCol.height
           clip: true
           Rectangle { width: 2; height: parent.height; color: lw.line }
+          Column {
+            visible: lw.pkg !== null
+            x: 20; width: parent.width - 20; spacing: 10
+            Text { text: lw.modes[lw.pfx]?.[0].toUpperCase() ?? ""; color: lw.modeColor; font { family: Theme.sans; pixelSize: 10; weight: Font.Black; letterSpacing: 1.6 } }
+            Text { width: parent.width; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText; text: lw.pkg?.name ?? ""; color: "#FFFFFF"; font { family: Theme.sans; pixelSize: 22; weight: Font.Black } }
+            Text { visible: text !== ""; width: parent.width; wrapMode: Text.Wrap; textFormat: Text.PlainText; text: lw.pkg?.desc ?? ""; color: "#C9C1C4"; lineHeight: 1.3; font { family: Theme.sans; pixelSize: 13 } }
+            // not free software: one more Enter allows it (this app only)
+            Rectangle {
+              visible: lw.confirm !== "" && lw.confirm === lw.pkg?.name
+              width: parent.width; height: unf.implicitHeight + 24; radius: 4; color: "transparent"; border.color: lw.cream
+              Text {
+                id: unf; x: 12; y: 12; width: parent.width - 24; wrapMode: Text.Wrap; color: lw.cream; font { family: Theme.sans; pixelSize: 13; bold: true }
+                text: Rice.t("ეს თავისუფალი პროგრამა არ არის. ↵ კიდევ ერთხელ — დაშვება მხოლოდ ამისთვის.", "This isn't free software. ↵ again allows it, for this app only.")
+              }
+            }
+            Text {
+              width: parent.width; wrapMode: Text.Wrap; color: lw.grey; lineHeight: 1.4; font { family: Theme.mono; pixelSize: 11 }
+              text: Apps.busy ? Rice.t("ჯერ წინა ცვლილება სრულდება…", "Still finishing the last change…")
+                : lw.pkg?.have && lw.pfx === "+" ? Rice.t("უკვე დაყენებულია", "Already installed")
+                : Rice.t("სისტემა თავიდან აიწყობა (რამდენიმე წუთი), პაროლს ერთხელ იკითხავს. მერე: ბოლო ცვლილების გაუქმება.", "The system rebuilds (a few minutes) and asks for your password once. Undo it later with + → Undo.")
+            }
+          }
           Column {
             id: pane
             visible: lw.pick !== null

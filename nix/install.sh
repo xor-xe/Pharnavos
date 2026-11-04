@@ -51,18 +51,24 @@ cat >"$etc/flake.nix" <<EOF
 {
   # Pharnavos on top of this system. Change your system in configuration.nix as usual, then:
   #   sudo nixos-rebuild switch
-  # Update Pharnavos (and NixOS with it): sudo nix flake update --flake /etc/nixos
-  inputs.pharnavos.url = "$url";
+  # Update Pharnavos and NixOS: sudo nix flake update --flake /etc/nixos (or "update" in the launcher)
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  inputs.pharnavos = {
+    url = "$url";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = { pharnavos, ... }: {
     nixosConfigurations."$host" = pharnavos.lib.system {
       user = "$user";
       nvidia = $nvidia;
+      apps = ./apps.json;   # apps installed from the launcher
       modules = [ ./configuration.nix ];
     };
   };
 }
 EOF
+echo '[]' >"$etc/apps.json"
 
 say "Building (a few minutes; it downloads the new system)…"
 export NIX_CONFIG="experimental-features = nix-command flakes"

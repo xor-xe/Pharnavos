@@ -1,9 +1,11 @@
-{ lib, stdenvNoCC, makeWrapper, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock, brightnessctl }:
+{ lib, stdenvNoCC, makeWrapper, writeShellApplication, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock, brightnessctl, libnotify, jq, brotli, util-linux }:
 
 let
   # what the shell calls at runtime; hyprctl / systemctl / loginctl come from the system.
   # nm-connection-editor (networkmanagerapplet) and blueman-manager open from the bar's icons.
-  path = lib.makeBinPath [ quickshell cava networkmanager networkmanagerapplet blueman power-profiles-daemon curl poppler-utils procps hyprlock brightnessctl ];
+  path = lib.makeBinPath [ quickshell cava networkmanager networkmanagerapplet blueman power-profiles-daemon curl poppler-utils procps hyprlock brightnessctl libnotify ];
+  # installs apps from the launcher; runs as root through pkexec, so it brings its own PATH
+  apps = writeShellApplication { name = "pharnavos-apps"; runtimeInputs = [ curl jq brotli util-linux ]; text = builtins.readFile ./apps.sh; };
 in
 stdenvNoCC.mkDerivation {
   pname = "pharnavos";
@@ -19,7 +21,8 @@ stdenvNoCC.mkDerivation {
 
     # `pharnavos` runs the shell; `pharnavos ipc call launcher toggle` etc. talk to it
     makeWrapper ${quickshell}/bin/qs $out/bin/pharnavos \
-      --add-flags "-p $share/shell.qml" --prefix PATH : ${path}
+      --add-flags "-p $share/shell.qml" --prefix PATH : ${path} --set PHARNAVOS_APPS ${lib.getExe apps}
+    ln -s ${lib.getExe apps} $out/bin/pharnavos-apps
 
     # the lock screen runs as its own instance, so a crash of the shell can't unlock you; if the
     # lock itself dies while locked, Hyprland keeps the session locked and hyprlock takes over

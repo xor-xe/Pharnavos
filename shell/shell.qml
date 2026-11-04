@@ -16,4 +16,5 @@ ShellRoot {
     model: Quickshell.screens
     WinClose {}
   }
+  Polkit {}
 }

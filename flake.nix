@@ -26,9 +26,10 @@
         };
       });
 
-      # an existing NixOS (its configuration.nix in `modules`) with Pharnavos on top; what the installer writes
-      lib.system = { user, nvidia ? null, modules }: nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit user nvidia; };
+      # an existing NixOS (its configuration.nix in `modules`) with Pharnavos on top; what the installer writes.
+      # apps: a JSON list of the apps installed from the launcher ([{"name": "vlc"}, …])
+      lib.system = { user, nvidia ? null, apps ? null, modules }: nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit user nvidia apps; };
         modules = modules ++ [ (import ./nix/install.nix self) ];
       };
 

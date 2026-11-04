@@ -68,7 +68,11 @@ sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Ph
 <details>
 <summary><b>დაყენების შემდეგ: პროგრამები, ქსელი და სხვა</b></summary>
 
-ყველაფერი `/etc/nixos/configuration.nix`-ში იწერება, როგორც ნებისმიერ NixOS-ზე. პაკეტების სახელები
+ყველაზე მარტივად გამშვებიდან: აკრიფე `install vlc` (ან `+vlc`), `remove vlc`, ან `update` მთელი
+სისტემისთვის; პაროლს ერთხელ იკითხავს და დასრულებისას გეტყვის. ასე დაყენებული პროგრამები
+`/etc/nixos/apps.json`-შია.
+
+დანარჩენი `/etc/nixos/configuration.nix`-ში იწერება, როგორც ნებისმიერ NixOS-ზე. პაკეტების სახელები
 მოძებნე [search.nixos.org](https://search.nixos.org/packages)-ზე, დაამატე და გაუშვი
 `sudo nixos-rebuild switch`:
 
