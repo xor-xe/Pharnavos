@@ -1,32 +1,47 @@
-# pharnavos-apps: installs apps from the launcher on a system set up by the one-command installer.
-# The apps live in /etc/nixos/apps.json, which the system flake reads (lib.system's `apps`).
+# pharnavos-apps: installs apps from the launcher. The apps live in apps.json in the system's flake,
+# which the NixOS module reads (programs.pharnavos.apps); the installer sets it up in /etc/nixos.
 #   as you:          index | search WORD | outdated
 #   as root (pkexec): install NAME [--unfree] | remove NAME | update | undo
 
 export PATH=$PATH:/run/current-system/sw/bin   # nix, nixos-rebuild: the system's own
-etc=/etc/nixos
+# where the flake is comes from the system (/etc/pharnavos/apps), never from whoever runs this
+conf=/etc/pharnavos/apps
+flake=/etc/nixos host=$(hostname) update=""
+if [ -f $conf ]; then
+  while IFS='=' read -r k v; do
+    case $k in flake) flake=$v ;; host) host=$v ;; update) update=$v ;; esac
+  done <$conf
+fi
+etc=$flake
 apps=$etc/apps.json
-prev=$etc/.pharnavos-prev                     # apps.json + flake.lock before the last change
+prev=/var/lib/pharnavos/prev                  # apps.json + flake.lock before the last change
 cache=${XDG_CACHE_HOME:-$HOME/.cache}/pharnavos
 index=$cache/packages.tsv
 die() { echo "$*" >&2; exit 1; }
 
 # the NixOS release the system follows (nixos-26.05, nixos-unstable)
-channel() { jq -r '.nodes.nixpkgs.original.ref // empty' $etc/flake.lock 2>/dev/null || true; }
+channel() { jq -r '.nodes.nixpkgs.original.ref // empty' "$etc/flake.lock" 2>/dev/null || true; }
 
-# root: only on a system the installer made, one change at a time
+# root: only when programs.pharnavos.apps is set, one change at a time
 root() {
   [ "$(id -u)" = 0 ] || die "Run it through pkexec."
-  grep -q apps.json $etc/flake.nix 2>/dev/null || die "This system wasn't set up by the Pharnavos installer."
+  [ -f $conf ] && [ -f "$apps" ] || die "Installing apps from the launcher is off (programs.pharnavos.apps)."
   exec 9>/run/pharnavos-apps.lock
   flock -n 9 || die "Another install is still running."
-  host=$(sed -n 's/.*nixosConfigurations\."\([^"]*\)".*/\1/p' $etc/flake.nix)
 }
-save() { mkdir -p $prev; cp $apps $etc/flake.lock $prev/; }
-restore() { cp $prev/apps.json $prev/flake.lock $etc/; }
-rebuild() { nixos-rebuild switch --flake "$etc#$host" 2>&1; }
+# the flake's files stay its owner's (a dotfiles repo in your home), and a new apps.json is shown to
+# git so Nix sees it
+own() {
+  chown --reference="$etc" "$apps" "$etc/flake.lock"
+  if [ -e "$etc/.git" ] && ! git -C "$etc" -c safe.directory="$etc" ls-files --error-unmatch apps.json >/dev/null 2>&1; then
+    runuser -u "$(stat -c %U "$etc")" -- git -C "$etc" add -N apps.json
+  fi
+}
+save() { mkdir -p $prev; cp "$apps" "$etc/flake.lock" $prev/; }
+restore() { cp $prev/apps.json $prev/flake.lock "$etc/"; own; }
+rebuild() { own; nixos-rebuild switch --flake "$etc#$host" 2>&1; }
 name() { [[ $1 =~ ^[A-Za-z0-9_][A-Za-z0-9_.+-]*$ ]] || die "Not an app name: $1"; }
-has() { jq -e --arg a "$1" 'any(.[]; .name == $a)' $apps >/dev/null; }
+has() { jq -e --arg a "$1" 'any(.[]; .name == $a)' "$apps" >/dev/null; }
 
 case ${1:-} in
   # every package of the system's NixOS release, one per line: name, version, "unfree", description.
@@ -53,7 +68,7 @@ case ${1:-} in
   search) grep -i -F -m 400 -- "$2" "$index" || true ;;
   # a newer NixOS than the one installed? (one small download)
   outdated)
-    rev=$(jq -r '.nodes.nixpkgs.locked.rev // empty' $etc/flake.lock 2>/dev/null) ch=$(channel)
+    rev=$(jq -r '.nodes.nixpkgs.locked.rev // empty' "$etc/flake.lock" 2>/dev/null) ch=$(channel)
     [ -n "$rev" ] && [ -n "$ch" ] || exit 0
     new=$(curl -fsL "https://channels.nixos.org/$ch/git-revision") || exit 0
     if [ "$new" != "$rev" ]; then echo yes; fi
@@ -64,29 +79,31 @@ case ${1:-} in
     unfree=$(nix eval --json "$etc#nixosConfigurations.$host.pkgs.$2.meta.unfree" 2>/dev/null) || die "There's no app called $2."
     if [ "$unfree" = true ] && [ "${3:-}" != --unfree ]; then die "$2 isn't free software; allow it first."; fi
     save
-    jq --arg a "$2" --argjson u "$unfree" '. + [{ name: $a } + (if $u then { unfree: true } else {} end)]' $prev/apps.json >$apps
+    jq --arg a "$2" --argjson u "$unfree" '. + [{ name: $a } + (if $u then { unfree: true } else {} end)]' $prev/apps.json >"$apps"
     rebuild || { restore; die "Installing $2 failed; nothing changed."; }
     ;;
   remove)
     root; name "$2"; has "$2" || die "$2 wasn't installed from the launcher."
     save
-    jq --arg a "$2" 'map(select(.name != $a))' $prev/apps.json >$apps
+    jq --arg a "$2" 'map(select(.name != $a))' $prev/apps.json >"$apps"
     rebuild || { restore; die "Removing $2 failed; nothing changed."; }
     ;;
-  # newest NixOS and Pharnavos; prints what changed as "CHANGE <line>"
+  # newest NixOS and Pharnavos (or the inputs in programs.pharnavos.apps.update); prints what changed
+  # as "CHANGE <line>"
   update)
     root; save
     old=$(readlink -f /run/current-system)
-    nix flake update --flake $etc 2>&1 || die "Couldn't reach the update servers."
+    # shellcheck disable=SC2086  # the input names, one word each
+    nix flake update $update --flake "$etc" 2>&1 || die "Couldn't reach the update servers."
     rebuild || { restore; die "The update failed; nothing changed."; }
     nix store diff-closures "$old" "$(readlink -f /run/current-system)" | sed 's/\x1b\[[0-9;]*m//g; s/^/CHANGE /'
     ;;
   # back to before the last change; run again to redo it
   undo)
     root; [ -f $prev/apps.json ] || die "Nothing to undo."
-    tmp=$(mktemp -d); cp $apps $etc/flake.lock "$tmp/"
+    tmp=$(mktemp -d); cp "$apps" "$etc/flake.lock" "$tmp/"
     restore
-    rebuild || { cp "$tmp"/* $etc/; die "Undo failed; nothing changed."; }
+    rebuild || { cp "$tmp"/* "$etc/"; own; die "Undo failed; nothing changed."; }
     cp "$tmp"/* $prev/
     ;;
   *) die "usage: pharnavos-apps index | search WORD | outdated | install NAME [--unfree] | remove NAME | update | undo" ;;

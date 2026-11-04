@@ -70,7 +70,9 @@ sudo nix --extra-experimental-features "nix-command flakes" run github:xor-xe/Ph
 
 ყველაზე მარტივად გამშვებიდან: აკრიფე `install vlc` (ან `+vlc`), `remove vlc`, ან `update` მთელი
 სისტემისთვის; პაროლს ერთხელ იკითხავს და დასრულებისას გეტყვის. ასე დაყენებული პროგრამები
-`/etc/nixos/apps.json`-შია.
+`/etc/nixos/apps.json`-შია. არ გინდა? `configuration.nix`-ში ჩაწერე
+`programs.pharnavos.apps.flake = null;` და გადააწყვე: გამშვები ამას აღარ შემოგთავაზებს, უკვე
+დაყენებული პროგრამები კი რჩება.
 
 დანარჩენი `/etc/nixos/configuration.nix`-ში იწერება, როგორც ნებისმიერ NixOS-ზე. პაკეტების სახელები
 მოძებნე [search.nixos.org](https://search.nixos.org/packages)-ზე, დაამატე და გაუშვი
@@ -181,6 +183,7 @@ swaync, და გაგაფრთხილებს, თუ რომელ�
 | `programs.pharnavos.enable` (home-manager) | თავად გარემოს (`pharnavos`, `pharnavos-lock`), მის ხელსაწყოებს (Quickshell, cava, nmcli, nm-connection-editor, blueman, powerprofilesctl, curl, pdftotext, hyprlock), Noto და FiraCode შრიფტებს, `pharnavos` სერვისს; Hyprland-ის კლავიშებს, ფანჯრების იერსახეს და ჩაკეტვის აღდგენას (`hyprland.enable`); hypridle-ით ჩაკეტვას (`lock.enable`) |
 | `programs.pharnavos.enable` (NixOS) | Hyprland, PipeWire, NetworkManager, Bluetooth + blueman, power-profiles-daemon (თუ არ დააყენე `powerProfiles = false`, მაგალითად TLP-ის გამო), hyprlock (ყველა ნაგულისხმევად) |
 | `programs.pharnavos.ai.enable` (home-manager) | მხოლოდ გამშვების `?` / `#`; ესაუბრება შენ მიერ არჩეულ მოდელის სერვერს და არაფერს აყენებს |
+| `programs.pharnavos.apps.flake` (NixOS) | პროგრამების დაყენებას გამშვებიდან: `apps.json`-ის პროგრამებს და root დამხმარეს pkexec-ით (ერთი ბრძანებით დაყენების შემდეგ თავისით ირთვება) |
 | `programs.pharnavos.ai.ollama.enable` (NixOS) | **ollama**-ს სისტემურ სერვისად და პირველ გაშვებაზე ჩამოტვირთავს ჩამოთვლილ მოდელებს (**რამდენიმე GB**; სასურველია GPU) |
 
 შაბლონი (ახალი დაყენება) ასევე ამატებს greetd + tuigreet-ს, foot-ს, Firefox-ს, git-სა და kew-ს
@@ -305,6 +308,27 @@ programs.pharnavos = {
   lock.screenOffMinutes = 20;
 };
 ```
+
+</details>
+
+<details>
+<summary><b>პროგრამების დაყენება გამშვებიდან (არასავალდებულო)</b></summary>
+
+<br>
+
+ერთი ბრძანებით დაყენებისას თავისით ირთვება. საკუთარ flake-ზე გამორთულია, სანამ მას არ მიუთითებ;
+მერე გამშვებში მუშაობს `install vlc`, `remove vlc` და `update`. NixOS:
+
+```nix
+programs.pharnavos.apps = {
+  flake = "/home/you/dotfiles";      # შენი სისტემის flake-ის საქაღალდე
+  list = ./apps.json;                # მის ძირში: დაიწყე ასე  echo '[]' > apps.json && git add apps.json
+  update = [ "nixpkgs" ];            # რას აახლებს "update"; თუ არ მიუთითებ, ყველა input-ს
+  # host = "laptop";                 # nixosConfigurations-ის სახელი, თუ ჰოსტის სახელს არ ემთხვევა
+};
+```
+
+დაყენება ცვლის `apps.json`-ს (`update` კი `flake.lock`-ს) შენს flake-ში: დააკომიტე ჩვეულებრივად.
 
 </details>
 

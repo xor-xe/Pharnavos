@@ -21,4 +21,6 @@ let
 in
 lib.mapAttrs (_: wrap { }) variants // lib.mapAttrs (_: n: wrap { nvidia = n; } { }) gpus
 # apps installed from the launcher: a free one and an unfree one
-// { apps = wrap { apps = ./kde/apps.json; } { }; }
+// { apps = wrap { apps = ./kde/apps.json; } { };
+     # ...and turned off by the user
+     apps-off = wrap { apps = ./kde/apps.json; } { programs.pharnavos.apps.flake = null; }; }

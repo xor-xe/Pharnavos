@@ -1,11 +1,11 @@
-{ lib, stdenvNoCC, makeWrapper, writeShellApplication, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock, brightnessctl, libnotify, jq, brotli, util-linux }:
+{ lib, stdenvNoCC, makeWrapper, writeShellApplication, git, coreutils, quickshell, cava, networkmanager, networkmanagerapplet, blueman, power-profiles-daemon, curl, poppler-utils, procps, hyprlock, brightnessctl, libnotify, jq, brotli, util-linux }:
 
 let
   # what the shell calls at runtime; hyprctl / systemctl / loginctl come from the system.
   # nm-connection-editor (networkmanagerapplet) and blueman-manager open from the bar's icons.
   path = lib.makeBinPath [ quickshell cava networkmanager networkmanagerapplet blueman power-profiles-daemon curl poppler-utils procps hyprlock brightnessctl libnotify ];
   # installs apps from the launcher; runs as root through pkexec, so it brings its own PATH
-  apps = writeShellApplication { name = "pharnavos-apps"; runtimeInputs = [ curl jq brotli util-linux ]; text = builtins.readFile ./apps.sh; };
+  apps = writeShellApplication { name = "pharnavos-apps"; runtimeInputs = [ curl jq brotli util-linux git coreutils ]; text = builtins.readFile ./apps.sh; };
 in
 stdenvNoCC.mkDerivation {
   pname = "pharnavos";

@@ -69,7 +69,8 @@ is backed up first. NVIDIA graphics get their driver. To change your system late
 
 The quickest way is the launcher: type `install vlc` (or `+vlc`), `remove vlc`, or `update` for the
 whole system; it asks for your password once and tells you when it's done. Apps installed this way are
-listed in `/etc/nixos/apps.json`.
+listed in `/etc/nixos/apps.json`. Don't want it? Add `programs.pharnavos.apps.flake = null;` to
+`configuration.nix` and rebuild: the launcher stops offering it, and apps installed so far stay.
 
 Everything else goes in `/etc/nixos/configuration.nix`, as on any NixOS. Find package names on
 [search.nixos.org](https://search.nixos.org/packages), add them, then run `sudo nixos-rebuild switch`:
@@ -179,6 +180,7 @@ Nothing is installed or changed unless you turn it on:
 | `programs.pharnavos.enable` (home-manager) | the shell (`pharnavos`, `pharnavos-lock`), its runtime tools (Quickshell, cava, nmcli, nm-connection-editor, blueman, powerprofilesctl, curl, pdftotext, hyprlock), Noto and FiraCode fonts, the `pharnavos` user service; Hyprland keybinds + window look + lock-crash recovery (`hyprland.enable`); hypridle idle locking (`lock.enable`) |
 | `programs.pharnavos.enable` (NixOS) | Hyprland, PipeWire, NetworkManager, Bluetooth + blueman, power-profiles-daemon (unless `powerProfiles = false`, e.g. you use TLP), hyprlock (all as defaults) |
 | `programs.pharnavos.ai.enable` (home-manager) | only the launcher's `?` / `#`; it talks to a model server you choose and installs nothing |
+| `programs.pharnavos.apps.flake` (NixOS) | installing apps from the launcher: the apps in `apps.json`, and a root helper run through pkexec (on by itself after the one-command install) |
 | `programs.pharnavos.ai.ollama.enable` (NixOS) | **ollama** as a system service, and downloads the listed models on first start (**several GB**; a GPU is recommended) |
 
 The template (fresh install) also adds greetd + tuigreet, foot, Firefox, git and kew (a terminal
@@ -302,6 +304,27 @@ programs.pharnavos = {
   lock.screenOffMinutes = 20;
 };
 ```
+
+</details>
+
+<details>
+<summary><b>Installing apps from the launcher (optional)</b></summary>
+
+<br>
+
+The one-command install turns this on by itself. On your own flake it's off until you point it at
+the flake; then `install vlc`, `remove vlc` and `update` work in the launcher. NixOS:
+
+```nix
+programs.pharnavos.apps = {
+  flake = "/home/you/dotfiles";      # your system flake's directory
+  list = ./apps.json;                # at its root: start it with  echo '[]' > apps.json && git add apps.json
+  update = [ "nixpkgs" ];            # what "update" refreshes; leave it out to update every input
+  # host = "laptop";                 # the nixosConfigurations name, if it isn't the host name
+};
+```
+
+Installs change `apps.json` (and `update` changes `flake.lock`) in your flake: commit them as usual.
 
 </details>
 

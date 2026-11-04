@@ -1,5 +1,5 @@
 // Apps from the launcher: search NixOS's packages, install / remove / update through pharnavos-apps
-// (nix/apps.sh) as root via pkexec. Only on a system the one-command installer set up (/etc/nixos/apps.json).
+// (nix/apps.sh) as root via pkexec. Only with programs.pharnavos.apps set (the one-command installer sets it).
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -11,10 +11,16 @@ Singleton {
   readonly property bool on: bin !== "" && managed
   property bool managed: false
 
+  // programs.pharnavos.apps: where the system's flake is ("" = off)
+  property string flake: ""
+  FileView {
+    path: "/etc/pharnavos/apps"; printErrors: false
+    onLoaded: root.flake = (text().match(/^flake=(.*)$/m) ?? ["", ""])[1]
+  }
   // what the launcher installed: [{ name, unfree }]
   property var installed: []
   FileView {
-    path: "/etc/nixos/apps.json"; watchChanges: true; printErrors: false
+    path: root.flake ? root.flake + "/apps.json" : ""; watchChanges: true; printErrors: false
     onFileChanged: reload()
     onLoaded: { root.managed = true; try { root.installed = JSON.parse(text()) } catch (e) {} }
     onLoadFailed: root.managed = false

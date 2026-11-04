@@ -50,7 +50,7 @@ PanelWindow {
 
   // ---- data --------------------------------------------------------------------------------
   readonly property string q: query.text
-  // ? and # only with AI on, + and - only on a system the one-command installer set up
+  // ? and # only with AI on, + and - only with programs.pharnavos.apps set
   readonly property string prefixes: (Rice.ai ? "=>?@#!" : "=>@!") + (Apps.on ? "+-" : "")
   // the same as words: "install vlc", "remove vlc", "update", "undo"
   readonly property string word: !Apps.on ? "" : /^install\s/i.test(q) ? "+" : /^(remove|uninstall)\s/i.test(q) ? "-" : /^\s*(update|undo)\s*$/i.test(q) ? "+" : ""

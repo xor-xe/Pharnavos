@@ -1,21 +1,18 @@
 self:
-{ config, lib, pkgs, user, nvidia, apps, ... }:
+{ config, lib, user, nvidia, apps, ... }:
 
 # What `nix run github:xor-xe/Pharnavos#install` adds on top of an existing NixOS (KDE, GNOME…):
 # the system's own configuration.nix stays in charge, Pharnavos and home-manager come on top.
 let
   layout = config.services.xserver.xkb.layout;
-  # apps installed from the launcher (pharnavos-apps writes the file)
-  wanted = if apps != null && builtins.pathExists apps then builtins.fromJSON (builtins.readFile apps) else [ ];
-  # ponytail: unfree apps are allowed by name prefix (steam → steam-unwrapped too), since pkgs can't be
-  # read inside nixpkgs.config; an app whose dependencies are named otherwise needs allowUnfree
-  unfree = map (a: lib.last (lib.splitString "." a.name)) (lib.filter (a: a.unfree or false) wanted)
-    ++ lib.optional (nvidia != null) "nvidia";
 in
 {
   imports = [ self.nixosModules.default self.inputs.home-manager.nixosModules.home-manager ];
 
   programs.pharnavos.enable = true;
+  # apps from the launcher, kept in /etc/nixos/apps.json. Off: programs.pharnavos.apps.flake = null;
+  # in configuration.nix (apps installed so far stay)
+  programs.pharnavos.apps = lib.mkIf (apps != null) { flake = lib.mkDefault "/etc/nixos"; list = lib.mkDefault apps; };
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # log in to Pharnavos by default; the old desktop stays one click away on the login screen.
@@ -44,8 +41,5 @@ in
     open = nvidia == "open";
   };
   services.xserver.videoDrivers = lib.mkIf (nvidia != null) [ "nvidia" ];
-  nixpkgs.config.allowUnfreePredicate = lib.mkIf (unfree != [ ])
-    (p: lib.any (n: lib.hasPrefix n (lib.getName p)) unfree);
-
-  environment.systemPackages = map (a: lib.getAttrFromPath (lib.splitString "." a.name) pkgs) wanted;
+  programs.pharnavos.unfree = lib.mkIf (nvidia != null) [ "nvidia" ];
 }
