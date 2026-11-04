@@ -53,15 +53,21 @@ PanelWindow {
   readonly property PwNode sink: Pipewire.defaultAudioSink
   PwObjectTracker { objects: [root.sink] }
 
-  property bool georgian: false
+  // the active keyboard layout as a short tag: us → EN, ge → KA, de → DE…
+  property string layout: "EN"
   Process {
+    id: kb
     running: true
     command: ["hyprctl", "devices", "-j"]
-    stdout: StdioCollector { onStreamFinished: { const k = JSON.parse(text).keyboards.find(k => k.main); if (k) root.georgian = /georgian/i.test(k.active_keymap) } }
+    stdout: StdioCollector { onStreamFinished: {
+      const k = JSON.parse(text).keyboards.find(k => k.main); if (!k) return;
+      const c = (k.layout.split(",")[k.active_layout_index] || "us").trim();
+      root.layout = ({ us: "EN", gb: "EN", ge: "KA" })[c] || c.slice(0, 2).toUpperCase();
+    } }
   }
   Connections {
     target: Hyprland
-    function onRawEvent(e) { if (e.name === "activelayout") root.georgian = /georgian/i.test(e.data) }
+    function onRawEvent(e) { if (e.name === "activelayout") kb.running = true }
   }
 
   ControlCenter { bar: root }
@@ -285,7 +291,7 @@ PanelWindow {
         Rectangle {
           anchors.centerIn: parent; width: 40; height: 26; radius: 13
           color: "transparent"; border.color: root.red
-          Text { anchors.centerIn: parent; text: root.georgian ? "KA" : "EN"; color: root.red; font { family: root.mono; pixelSize: 12; bold: true } }
+          Text { anchors.centerIn: parent; text: root.layout; color: root.red; font { family: root.mono; pixelSize: 12; bold: true } }
         }
       }
       // Wi-Fi: arcs light with the signal (wired = full), red and crossed out when offline;
