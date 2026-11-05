@@ -10,7 +10,7 @@ Singleton {
   id: root
   // colour themes, picked in the control centre: Crimson (the original) and Black Sea. Every reddish
   // colour in the shell goes through c(): Crimson keeps it, Black Sea turns its hue to blue and keeps
-  // its lightness, so the wine-tinted greys become slate. Cream, amber, green and the flag stay.
+  // its lightness, so the wine-tinted greys become slate. Cream, amber, green and the power modes stay.
   // [id, name, swatch, hue, saturation factor, rose, pink]; gold stays toward yellow and calmer, so it
   // never reads orange. rose: the lighter tint beside the accent (the clock's დილის, the lock screen's
   // date); pink: a second hue for data next to the accent (battery, upload, a connected device)

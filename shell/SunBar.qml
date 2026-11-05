@@ -355,7 +355,7 @@ PanelWindow {
         onContainsMouseChanged: pops.hover("power", this, containsMouse)
         Icon {
           d: "M4 18a8 8 0 1 1 16 0" + (Sys.profile === "performance" ? "M12 18l5-3" : Sys.profile === "power-saver" ? "M12 18l-5-3" : "M12 18l0-7")
-          c: Sys.profile === "performance" ? root.red : parent.fg
+          c: Sys.profile === "performance" ? "#FF3B3B" : parent.fg   // performance is red in every colour theme
         }
       }
       IconBtn {

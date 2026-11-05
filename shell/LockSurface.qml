@@ -95,7 +95,7 @@ Item {
     property rect maskRect: ls.variant === "flag"
       ? Qt.rect(origin.x / width, origin.y / height, ls.fc * ls.cell / width, ls.fr * ls.cell / height)
       : Qt.rect(0, (height - width * 896 / 1600) / 2 / height, 1, width * 896 / 1600 / height)
-    property color tint: ls.variant === "flag" ? "#FF2A3A" : Theme.c("#FF2A3A")   // a flag stays red
+    property color tint: Theme.c("#FF2A3A")
     fragmentShader: "file://" + Quickshell.shellDir + "/shaders/lockrain.frag.qsb"
   }
   // flag: dark well behind the clock so it reads over the cross

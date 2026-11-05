@@ -348,7 +348,7 @@ Item {
     Column {
       id: pc
       readonly property var profs: ["power-saver", "balanced", "performance"]
-      readonly property var cols: ["#6FBF73", "#EDE6DA", pops.red]     // green leaf, white, red
+      readonly property var cols: ["#6FBF73", "#EDE6DA", "#FF3B3B"]    // green leaf, white, red: the same in every colour theme
       readonly property var names: [Rice.t("ენერგიის დაზოგვა", "Power saver"), Rice.t("ბალანსი", "Balanced"), Rice.t("მარდად", "Performance")]
       readonly property var tips: [Rice.t("ჩუმი · ბატარეა დიდხანს ძლებს", "quiet · the battery lasts"), Rice.t("ყოველდღიური", "everyday"), Rice.t("მაქსიმალური სიჩქარე · მეტი ხმაური", "full speed · more fan noise")]
       readonly property var icons: [pops.paths.leaf, pops.paths.scale, pops.paths.bolt]

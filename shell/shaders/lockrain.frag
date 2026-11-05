@@ -15,7 +15,7 @@ layout(std140, binding = 0) uniform buf {
     float glyphs;    // glyph count in the atlas
     float mood;      // 0 idle, 1 wrong (red), 2 accepted (warm)
     vec4 maskRect;   // where the mask texture sits, in item uv (x, y, w, h)
-    vec4 tint;       // idle letter colour (the colour theme's accent; the flag keeps its red)
+    vec4 tint;       // idle letter colour (the colour theme's accent)
 };
 layout(binding = 1) uniform sampler2D atlas;
 layout(binding = 2) uniform sampler2D mask;
