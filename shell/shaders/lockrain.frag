@@ -15,6 +15,7 @@ layout(std140, binding = 0) uniform buf {
     float glyphs;    // glyph count in the atlas
     float mood;      // 0 idle, 1 wrong (red), 2 accepted (warm)
     vec4 maskRect;   // where the mask texture sits, in item uv (x, y, w, h)
+    vec4 tint;       // idle letter colour (the colour theme's accent; the flag keeps its red)
 };
 layout(binding = 1) uniform sampler2D atlas;
 layout(binding = 2) uniform sampler2D mask;
@@ -38,6 +39,6 @@ void main() {
     float ga = texture(atlas, vec2((k + l.x) / glyphs, l.y)).a;
     float wave = 0.55 + 0.45 * sin((p.x + p.y) / (140.0 * cell / 13.0) - t * 3.6);
     float a = min(1.0, (0.55 + 0.45 * wave) * (0.95 + heat * 0.3)) * ga;   // brighter base: smaller letters carry less ink
-    vec3 c = mood > 1.5 ? vec3(1.0, 0.78, 0.47) : mood > 0.5 ? vec3(1.0, 0.165, 0.227) : vec3(1.0, (40.0 + wave * 40.0) / 255.0, 0.227);
+    vec3 c = mood > 1.5 ? vec3(1.0, 0.78, 0.47) : mood > 0.5 ? vec3(1.0, 0.165, 0.227) : min(tint.rgb + vec3(0.0, wave * 0.157, 0.0), 1.0);
     fragColor = vec4(c * a, a) * qt_Opacity;
 }

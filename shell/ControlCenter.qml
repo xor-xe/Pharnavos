@@ -51,9 +51,9 @@ PanelWindow {
 
   readonly property color red: Theme.red
   readonly property color cream: Theme.cream
-  readonly property color grey: "#8C8186"
-  readonly property color line: "#2A2226"
-  readonly property color card: "#0E0B0D"
+  readonly property color grey: Theme.c("#8C8186")
+  readonly property color line: Theme.c("#2A2226")
+  readonly property color card: Theme.c("#0E0B0D")
   property string tab: Quickshell.env("PHARNAVOS_CCTAB") || "main"
 
   IpcHandler { target: "cc-ui"; function tab(t: string): void { cc.tab = t } function list(k: string): void { if (k === "out" || k === "in") cc.soundOpen = cc.soundOpen === k ? "" : k; else cc.list = k } }
@@ -186,8 +186,8 @@ PanelWindow {
       Behavior on opacity { NumberAnimation { duration: 180 } }
       x: panel.x - width - 12; y: 14
       width: Math.min(280, noticeT.implicitWidth + 52); height: 52
-      Rectangle { anchors.fill: parent; radius: 14; color: "#0B090A" }
-      Stitch { anchors.fill: parent; inset: 5; stroke: 2; thread: cc.toastBad ? cc.red : cc.toastOk ? cc.cream : "#8C8186" }
+      Rectangle { anchors.fill: parent; radius: 14; color: Theme.c("#0B090A") }
+      Stitch { anchors.fill: parent; inset: 5; stroke: 2; thread: cc.toastBad ? cc.red : cc.toastOk ? cc.cream : Theme.c("#8C8186") }
       Rectangle { x: 18; anchors.verticalCenter: parent.verticalCenter; width: 8; height: 8; radius: 4; color: cc.toastBad ? cc.red : cc.toastOk ? "#7BC47F" : cc.grey }
       Text {
         id: noticeT
@@ -237,7 +237,7 @@ PanelWindow {
             Shape {
               anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
               ShapePath {
-                strokeColor: cc.red; strokeWidth: 2; fillColor: "#0E0B0D"
+                strokeColor: cc.red; strokeWidth: 2; fillColor: Theme.c("#0E0B0D")
                 strokeStyle: ShapePath.DashLine; dashPattern: [2, 1.5]
                 PathAngleArc { centerX: 24; centerY: 24; radiusX: 22.5; radiusY: 22.5; startAngle: 0; sweepAngle: 360 }
               }
@@ -309,7 +309,7 @@ PanelWindow {
                   Rectangle {
                     visible: cc.pwFor === netRow.modelData.ssid
                     x: 10; width: parent.width - 20; height: visible ? 36 : 0; radius: 10
-                    color: "#070607"; border.color: pwIn.activeFocus ? cc.red : "#3A2E33"
+                    color: "#070607"; border.color: pwIn.activeFocus ? cc.red : Theme.c("#3A2E33")
                     TextInput {
                       id: pwIn
                       anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
@@ -340,7 +340,7 @@ PanelWindow {
                 RowBtn {
                   required property BluetoothDevice modelData
                   label: modelData.name
-                  dot: modelData.connected ? cc.red : "#3A2E33"
+                  dot: modelData.connected ? cc.red : Theme.c("#3A2E33")
                   tag: (modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%  " : "") + (modelData.connected ? Rice.t("მიერთებულია", "connected") : "")
                   tagColor: cc.red
                   onClicked: modelData.connected ? modelData.disconnect() : modelData.connect()
@@ -402,7 +402,7 @@ PanelWindow {
                       readonly property bool today: d.toDateString() === cc.now.toDateString()
                       width: (calCard.width - 36 - 12) / 7; height: 30; radius: 8
                       color: today ? cc.red : "transparent"
-                      Text { anchors.centerIn: parent; text: parent.d.getDate(); color: parent.today ? "#070607" : parent.inMonth ? cc.cream : "#4A4045"; font { family: Theme.sans; pixelSize: 13; bold: parent.today } }
+                      Text { anchors.centerIn: parent; text: parent.d.getDate(); color: parent.today ? "#070607" : parent.inMonth ? cc.cream : Theme.c("#4A4045"); font { family: Theme.sans; pixelSize: 13; bold: parent.today } }
                     }
                   }
                 }
@@ -431,12 +431,12 @@ PanelWindow {
                       if (m.button === Qt.RightButton) a.splice(index, 1); else a[index] = { text: modelData.text, done: !modelData.done };
                       Rice.cfg.todos = a;
                     }
-                    Rectangle { anchors.fill: parent; radius: 10; color: todo.containsMouse ? "#1A1517" : "transparent" }
-                    Diamond { x: 8; anchors.verticalCenter: parent.verticalCenter; size: 14; ink: todo.modelData.done ? cc.red : "#5A4E53" }
+                    Rectangle { anchors.fill: parent; radius: 10; color: todo.containsMouse ? Theme.c("#1A1517") : "transparent" }
+                    Diamond { x: 8; anchors.verticalCenter: parent.verticalCenter; size: 14; ink: todo.modelData.done ? cc.red : Theme.c("#5A4E53") }
                     Text {
                       x: 32; width: parent.width - 40; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight
                       text: todo.modelData.text; font { family: Theme.sans; pixelSize: 13; weight: Font.DemiBold; strikeout: todo.modelData.done }
-                      color: todo.modelData.done ? "#5A4E53" : cc.cream
+                      color: todo.modelData.done ? Theme.c("#5A4E53") : cc.cream
                     }
                   }
                 }
@@ -470,6 +470,34 @@ PanelWindow {
         Column {
           visible: cc.tab === "lock"
           width: parent.width; spacing: 10
+          // colour theme: the whole shell follows at once (Theme.c)
+          Card {
+            height: 82
+            Column {
+              width: parent.width; spacing: 10
+              Head { text: Rice.t("ფერი", "Colour") }
+              Row {
+                spacing: 8
+                Repeater {
+                  model: Theme.themes
+                  MouseArea {
+                    id: sw
+                    required property var modelData
+                    readonly property bool on: (Rice.cfg.theme || "crimson") === modelData[0]
+                    width: swRow.width + 24; height: 30; hoverEnabled: true
+                    onClicked: Rice.cfg.theme = modelData[0]
+                    Rectangle { anchors.fill: parent; radius: 15; color: "transparent"; border { width: sw.on ? 2 : 1; color: sw.on ? sw.modelData[2] : sw.containsMouse ? Theme.c("#5A4E53") : cc.line } }
+                    Row {
+                      id: swRow
+                      anchors.centerIn: parent; spacing: 8
+                      Rectangle { width: 14; height: 14; radius: 7; color: sw.modelData[2]; anchors.verticalCenter: parent.verticalCenter }
+                      Text { text: sw.modelData[1]; color: sw.on ? cc.cream : cc.grey; font { family: Theme.sans; pixelSize: 12; bold: true } }
+                    }
+                  }
+                }
+              }
+            }
+          }
           Card {
             height: 82
             Column {
@@ -519,7 +547,7 @@ PanelWindow {
             height: 82
             Column {
               width: parent.width; spacing: 8
-              Head { text: Rice.t("წითელი ფონი", "Red background") }
+              Head { text: Rice.t("ფონის ნათება", "Background glow") }
               Seg { opts: [["on", Rice.t("ჩართულია", "on")], ["off", Rice.t("გამორთულია", "off")]]; value: Rice.cfg.glow ? "on" : "off"; onPicked: v => Rice.cfg.glow = v === "on" }
             }
           }
@@ -533,7 +561,7 @@ PanelWindow {
               Seg { opts: [["auto", Rice.t("ავტო", "auto")], ["r", Rice.t("რუსთაველი", "Rustaveli")], ["v", Rice.t("ვაჟა", "Vazha")]]; value: Rice.cfg.wallSrc === "m" ? "auto" : Rice.cfg.wallSrc; onPicked: v => Rice.cfg.wallSrc = v }
               Text {
                 width: parent.width; wrapMode: Text.Wrap; lineHeight: 1.15
-                text: Rice.wallText; color: "#C9C1C4"; font { family: "Noto Serif Georgian"; pixelSize: 12 }
+                text: Rice.wallText; color: Theme.c("#C9C1C4"); font { family: "Noto Serif Georgian"; pixelSize: 12 }
               }
               Row {
                 spacing: 10
@@ -593,14 +621,14 @@ PanelWindow {
     property string text
     property bool on
     width: chipT.implicitWidth + 28; height: 34; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 17; color: parent.on ? cc.red : cc.card; border.color: parent.on ? cc.red : parent.containsMouse ? cc.red : "#3A2E33" }
+    Rectangle { anchors.fill: parent; radius: 17; color: parent.on ? cc.red : cc.card; border.color: parent.on ? cc.red : parent.containsMouse ? cc.red : Theme.c("#3A2E33") }
     Text { id: chipT; anchors.centerIn: parent; text: parent.text; color: parent.on ? "#070607" : cc.cream; font { family: Theme.sans; pixelSize: 13; weight: Font.Bold } }
   }
 
   component Btn: MouseArea {
     property string text
     width: btnT.implicitWidth + 16; height: 24; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 8; color: parent.containsMouse ? "#1A1517" : "transparent"; border.color: "#3A2E33" }
+    Rectangle { anchors.fill: parent; radius: 8; color: parent.containsMouse ? Theme.c("#1A1517") : "transparent"; border.color: Theme.c("#3A2E33") }
     Text { id: btnT; anchors.centerIn: parent; text: parent.text; color: cc.cream; font { family: Theme.sans; pixelSize: 12; bold: true } }
   }
 
@@ -626,13 +654,13 @@ PanelWindow {
     property string sub
     property string icon
     width: 97; height: 80; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 18; color: parent.on ? cc.red : cc.card; border.color: parent.on ? cc.red : parent.containsMouse ? "#5A4E53" : cc.line }
+    Rectangle { anchors.fill: parent; radius: 18; color: parent.on ? cc.red : cc.card; border.color: parent.on ? cc.red : parent.containsMouse ? Theme.c("#5A4E53") : cc.line }
     Shape {
       x: 14; y: 12; width: 18; height: 18; preferredRendererType: Shape.CurveRenderer
       ShapePath { strokeColor: tile.on ? "#070607" : cc.cream; strokeWidth: 2.2; fillColor: "transparent"; capStyle: ShapePath.RoundCap; joinStyle: ShapePath.RoundJoin; scale: Qt.size(0.75, 0.75); PathSvg { path: tile.icon } }
     }
     Text { x: 14; y: 36; text: parent.title; color: parent.on ? "#070607" : cc.cream; font { family: Theme.sans; pixelSize: 13; weight: Font.ExtraBold } }
-    Text { x: 14; y: 55; width: parent.width - 20; elide: Text.ElideRight; textFormat: Text.PlainText; text: parent.sub; color: parent.on ? "#3A0A0F" : cc.grey; font { family: Theme.sans; pixelSize: 10 } }
+    Text { x: 14; y: 55; width: parent.width - 20; elide: Text.ElideRight; textFormat: Text.PlainText; text: parent.sub; color: parent.on ? Theme.c("#3A0A0F") : cc.grey; font { family: Theme.sans; pixelSize: 10 } }
   }
 
   // wax seal row: quick click opens its drawer, press-and-hold (0.7 s) stamps it on/off
@@ -671,14 +699,14 @@ PanelWindow {
       Rectangle {
         x: 1; y: 1; width: parent.width - 2; height: parent.height - (seal.open && seal.drawer ? 1 : 2)
         radius: 17; bottomLeftRadius: seal.open && seal.drawer ? 0 : 17; bottomRightRadius: seal.open && seal.drawer ? 0 : 17
-        color: press.containsMouse ? "#161113" : "transparent"
+        color: press.containsMouse ? Theme.c("#161113") : "transparent"
         Behavior on color { ColorAnimation { duration: 120 } }
       }
       Item {
         id: disc
         x: 12; anchors.verticalCenter: parent.verticalCenter; width: 42; height: 42
         SequentialAnimation on scale { id: stamp; running: false; NumberAnimation { to: 0.84; duration: 110 } NumberAnimation { to: 1.07; duration: 140 } NumberAnimation { to: 1; duration: 120 } }
-        Rectangle { anchors.fill: parent; radius: 21; color: seal.on ? cc.red : "#1A1517"; border.color: "#3A2E33" }
+        Rectangle { anchors.fill: parent; radius: 21; color: seal.on ? cc.red : Theme.c("#1A1517"); border.color: Theme.c("#3A2E33") }
         Shape {
           anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
           ShapePath {
@@ -698,7 +726,7 @@ PanelWindow {
       }
       Text { visible: seal.drawer; anchors { right: parent.right; rightMargin: 16; verticalCenter: parent.verticalCenter } text: seal.open ? "▴" : "▾"; color: cc.grey; font.pixelSize: 14 }
     }
-    Rectangle { visible: seal.open && seal.drawer; x: 12; y: 64; width: parent.width - 24; height: 1; color: "#2A2226" }
+    Rectangle { visible: seal.open && seal.drawer; x: 12; y: 64; width: parent.width - 24; height: 1; color: Theme.c("#2A2226") }
     Column { id: drawerCol; x: 6; y: 70; width: parent.width - 12; visible: seal.open && seal.drawer }
   }
 
@@ -710,10 +738,10 @@ PanelWindow {
     property color dot: "transparent"
     property int bars: -1
     width: parent.width; height: 38; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 12; color: parent.containsMouse ? "#1A1517" : "transparent" }
+    Rectangle { anchors.fill: parent; radius: 12; color: parent.containsMouse ? Theme.c("#1A1517") : "transparent" }
     Row {
       x: 10; anchors.verticalCenter: parent.verticalCenter; spacing: 3; visible: parent.bars >= 0
-      Repeater { model: 4; Rectangle { required property int index; anchors.bottom: parent.bottom; width: 4; height: 4 + index * 3; color: index < rb.bars ? cc.red : "#3A2E33" } }
+      Repeater { model: 4; Rectangle { required property int index; anchors.bottom: parent.bottom; width: 4; height: 4 + index * 3; color: index < rb.bars ? cc.red : Theme.c("#3A2E33") } }
     }
     Rectangle { visible: parent.bars < 0; x: 12; anchors.verticalCenter: parent.verticalCenter; width: 8; height: 8; radius: 4; color: parent.dot }
     Text { x: 46; width: parent.width - 156; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight; textFormat: Text.PlainText; text: parent.label; color: cc.cream; font { family: Theme.sans; pixelSize: 13; weight: Font.DemiBold } }
@@ -731,7 +759,7 @@ PanelWindow {
     Item {
       id: track
       x: parent.labelWidth > 0 ? parent.labelWidth + 6 : 0; width: parent.width - x; height: parent.height
-      Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width; height: 4; radius: 2; color: "#2A2226" }
+      Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width; height: 4; radius: 2; color: Theme.c("#2A2226") }
       Rectangle { anchors.verticalCenter: parent.verticalCenter; width: parent.width * Math.max(0, Math.min(1, parent.parent.value)); height: 4; radius: 2; color: cc.red }
       Rectangle { anchors.verticalCenter: parent.verticalCenter; x: parent.width * Math.max(0, Math.min(1, parent.parent.value)) - 7; width: 14; height: 14; radius: 7; color: cc.cream }
       MouseArea {
@@ -784,9 +812,9 @@ PanelWindow {
       width: parent.width; height: 54; hoverEnabled: true
       onClicked: cc.soundOpen = sg.open ? "" : sg.key
       Rectangle {
-        anchors.fill: parent; color: devBtn.containsMouse && !sg.open ? "#120E10" : "#070607"
+        anchors.fill: parent; color: devBtn.containsMouse && !sg.open ? Theme.c("#120E10") : "#070607"
         radius: 12; bottomLeftRadius: sg.open ? 0 : 12; bottomRightRadius: sg.open ? 0 : 12
-        border.color: sg.open ? cc.red : devBtn.containsMouse ? "#5A4E53" : cc.line
+        border.color: sg.open ? cc.red : devBtn.containsMouse ? Theme.c("#5A4E53") : cc.line
       }
       Shape {
         x: 11; anchors.verticalCenter: parent.verticalCenter; width: 20; height: 20; preferredRendererType: Shape.CurveRenderer
@@ -796,7 +824,7 @@ PanelWindow {
         x: 40; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 86
         spacing: 1
         Text { width: parent.width; elide: Text.ElideRight; text: cc.soundName(sg.cur, sg.sink); color: cc.cream; font { family: Theme.sans; pixelSize: 14; weight: Font.ExtraBold } }
-        Text { width: parent.width; elide: Text.ElideRight; text: cc.soundDesc(sg.cur).replace(/^USB · /, ""); color: "#A79DA2"; font { family: Theme.sans; pixelSize: 12 } }
+        Text { width: parent.width; elide: Text.ElideRight; text: cc.soundDesc(sg.cur).replace(/^USB · /, ""); color: Theme.c("#A79DA2"); font { family: Theme.sans; pixelSize: 12 } }
       }
       Text { anchors { right: parent.right; rightMargin: 30; verticalCenter: parent.verticalCenter } text: sg.nodes.length; color: cc.grey; font { family: Theme.sans; pixelSize: 12; bold: true } }
       Text { anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter } text: "▾"; rotation: sg.open ? 180 : 0; color: cc.grey; font.pixelSize: 13; Behavior on rotation { NumberAnimation { duration: 200 } } }
@@ -819,8 +847,8 @@ PanelWindow {
             readonly property bool on: modelData === sg.cur
             width: parent.width; height: 46; hoverEnabled: true
             onClicked: { if (sg.sink) Pipewire.preferredDefaultAudioSink = modelData; else Pipewire.preferredDefaultAudioSource = modelData; cc.soundOpen = "" }
-            Rectangle { anchors.fill: parent; radius: 9; color: opt.containsMouse ? "#1A1517" : "transparent" }
-            Diamond { x: 10; anchors.verticalCenter: parent.verticalCenter; size: 12; ink: opt.on ? cc.red : "#3A2E33" }
+            Rectangle { anchors.fill: parent; radius: 9; color: opt.containsMouse ? Theme.c("#1A1517") : "transparent" }
+            Diamond { x: 10; anchors.verticalCenter: parent.verticalCenter; size: 12; ink: opt.on ? cc.red : Theme.c("#3A2E33") }
             Shape {
               x: 30; anchors.verticalCenter: parent.verticalCenter; width: 16; height: 16; preferredRendererType: Shape.CurveRenderer
               ShapePath { strokeColor: opt.on ? "#FFFFFF" : cc.cream; strokeWidth: 2; fillColor: "transparent"; capStyle: ShapePath.RoundCap; joinStyle: ShapePath.RoundJoin; scale: Qt.size(16 / 24, 16 / 24); PathSvg { path: cc.soundIcons[cc.soundKind(opt.modelData, sg.sink)] } }
@@ -828,7 +856,7 @@ PanelWindow {
             Column {
               x: 56; width: parent.width - 108; anchors.verticalCenter: parent.verticalCenter
               Text { width: parent.width; elide: Text.ElideRight; text: cc.soundName(opt.modelData, sg.sink); color: opt.on ? "#FFFFFF" : cc.cream; font { family: Theme.sans; pixelSize: 13; weight: Font.DemiBold } }
-              Text { width: parent.width; elide: Text.ElideRight; text: cc.soundDesc(opt.modelData); color: "#A79DA2"; font { family: Theme.sans; pixelSize: 11 } }
+              Text { width: parent.width; elide: Text.ElideRight; text: cc.soundDesc(opt.modelData); color: Theme.c("#A79DA2"); font { family: Theme.sans; pixelSize: 11 } }
             }
             Text { anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter } text: Math.round((opt.modelData.audio?.volume ?? 0) * 100) + "%"; color: cc.grey; font { family: Theme.sans; pixelSize: 11; bold: true } }
           }
@@ -844,11 +872,11 @@ PanelWindow {
         y: 6; width: 32; height: 32; hoverEnabled: true
         readonly property bool muted: sg.cur?.audio.muted ?? false
         onClicked: if (sg.cur) sg.cur.audio.muted = !sg.cur.audio.muted
-        Rectangle { anchors.fill: parent; radius: 16; color: muteBtn.muted ? "#2A2226" : "transparent"; border.color: muteBtn.containsMouse ? cc.red : cc.line }
+        Rectangle { anchors.fill: parent; radius: 16; color: muteBtn.muted ? Theme.c("#2A2226") : "transparent"; border.color: muteBtn.containsMouse ? cc.red : cc.line }
         Shape {
           anchors.centerIn: parent; width: 15; height: 15; preferredRendererType: Shape.CurveRenderer
           ShapePath {
-            strokeColor: muteBtn.muted ? "#5A4E53" : "#C9C1C4"; strokeWidth: 2.2; fillColor: "transparent"; capStyle: ShapePath.RoundCap; joinStyle: ShapePath.RoundJoin; scale: Qt.size(15 / 24, 15 / 24)
+            strokeColor: muteBtn.muted ? Theme.c("#5A4E53") : Theme.c("#C9C1C4"); strokeWidth: 2.2; fillColor: "transparent"; capStyle: ShapePath.RoundCap; joinStyle: ShapePath.RoundJoin; scale: Qt.size(15 / 24, 15 / 24)
             PathSvg { path: sg.sink ? (muteBtn.muted ? "M4 9v6h4l5 4V5L8 9zM17 9l4 6M21 9l-4 6" : "M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6") : (muteBtn.muted ? "M9 3h6v10H9zM5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18" : "M9 3h6v10H9zM5 11a7 7 0 0 0 14 0M12 18v3") }
           }
         }
@@ -858,7 +886,7 @@ PanelWindow {
         value: sg.cur?.audio.volume ?? 0
         onMoved: v => { if (sg.cur) sg.cur.audio.volume = v }
       }
-      Text { anchors { right: parent.right; verticalCenter: parent.verticalCenter; verticalCenterOffset: 2 } text: Math.round((sg.cur?.audio.volume ?? 0) * 100); color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 12; bold: true } }
+      Text { anchors { right: parent.right; verticalCenter: parent.verticalCenter; verticalCenterOffset: 2 } text: Math.round((sg.cur?.audio.volume ?? 0) * 100); color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 12; bold: true } }
     }
   }
 
@@ -866,14 +894,14 @@ PanelWindow {
     property alias text: input.text
     property string placeholder
     signal accepted()
-    width: parent.width; height: 36; radius: 12; color: "transparent"; border.color: input.activeFocus ? cc.red : "#3A2E33"
+    width: parent.width; height: 36; radius: 12; color: "transparent"; border.color: input.activeFocus ? cc.red : Theme.c("#3A2E33")
     TextInput {
       id: input
       x: 12; width: parent.width - 24; anchors.verticalCenter: parent.verticalCenter; clip: true
       color: cc.cream; selectionColor: cc.red; font { family: Theme.sans; pixelSize: 13; weight: Font.DemiBold }
       onAccepted: parent.accepted()
       Keys.onEscapePressed: Rice.ccOpen = false
-      Text { visible: !parent.text && !parent.activeFocus; text: parent.parent.placeholder; color: "#5A4E53"; font: parent.font }
+      Text { visible: !parent.text && !parent.activeFocus; text: parent.parent.placeholder; color: Theme.c("#5A4E53"); font: parent.font }
     }
   }
 

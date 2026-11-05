@@ -129,7 +129,7 @@ PanelWindow {
         entryEffect: ImageParticle.Fade
       }
       Letters { groups: ["cream"]; color: "#EDE6DA" }
-      Letters { groups: ["red"]; color: "#FF3B3B" }
+      Letters { groups: ["red"]; color: Theme.c("#FF3B3B") }
       component Fall: Emitter {
         system: sys; enabled: false
         lifeSpan: 1000; lifeSpanVariation: 350

@@ -83,6 +83,7 @@ Singleton {
       property int contrast: 52
       property string ink: "r"          // w | wr | r
       property bool glow: true          // the dim red glow behind the wallpaper
+      property string theme: "crimson"  // crimson | blue | gold | green (Theme.c)
       property bool awake: false
       property string lockLook: "random"  // random | giorgi | flag | borj
       property string clockFmt: "24"       // 24 | ka (12h + დილის/შუადღის/საღამოს/ღამის) | ampm

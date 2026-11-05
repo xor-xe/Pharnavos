@@ -91,7 +91,7 @@ PanelWindow {
       osd.t = t;
     }
   }
-  readonly property color ink: muted ? "#5A5055" : Theme.red
+  readonly property color ink: muted ? Theme.c("#5A5055") : Theme.red
 
   // the wave runs as far as the volume goes: 100% reaches the end of the dotted track
   readonly property real trackEnd: 584   // leaves room for "100" after the tip inside the 740 px stage
@@ -248,10 +248,10 @@ PanelWindow {
         strokeWidth: 0; strokeColor: "transparent"
         fillGradient: LinearGradient {
           x1: 0; y1: 0; x2: 740; y2: 0
-          GradientStop { position: 0; color: "#000B090A" }
-          GradientStop { position: 0.14; color: "#0B090A" }
-          GradientStop { position: 0.86; color: "#0B090A" }
-          GradientStop { position: 1; color: "#000B090A" }
+          GradientStop { position: 0; color: Theme.c("#000B090A") }
+          GradientStop { position: 0.14; color: Theme.c("#0B090A") }
+          GradientStop { position: 0.86; color: Theme.c("#0B090A") }
+          GradientStop { position: 1; color: Theme.c("#000B090A") }
         }
         PathSvg { path: "M0 30 C120 20 260 38 380 28 S620 22 740 32 L740 70 L0 70 Z" }
       }
@@ -259,10 +259,10 @@ PanelWindow {
         strokeWidth: 0; strokeColor: "transparent"
         fillGradient: LinearGradient {
           x1: 0; y1: 0; x2: 740; y2: 0
-          GradientStop { position: 0; color: "#002A2226" }
-          GradientStop { position: 0.14; color: "#2A2226" }
-          GradientStop { position: 0.86; color: "#2A2226" }
-          GradientStop { position: 1; color: "#002A2226" }
+          GradientStop { position: 0; color: Theme.c("#002A2226") }
+          GradientStop { position: 0.14; color: Theme.c("#2A2226") }
+          GradientStop { position: 0.86; color: Theme.c("#2A2226") }
+          GradientStop { position: 1; color: Theme.c("#002A2226") }
         }
         PathPolyline { path: osd.band(osd.horizon.pts, 9) }
       }

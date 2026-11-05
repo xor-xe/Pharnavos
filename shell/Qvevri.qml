@@ -9,8 +9,8 @@ Item {
   property real level: 0          // 0..100
   property string icon: ""        // SVG path in a 24×24 box, stamped into the clay
   property string glyph: ""       // or a letter on the belly instead: an SVG path in the 16×24 box
-  property color wine: "#B0151F"
-  property color hot: "#FF3B3B"
+  property color wine: Theme.c("#B0151F")
+  property color hot: Theme.c("#FF3B3B")
   property bool alarm: level > 85   // the wine turns hot red
   property bool pulse: level > 95   // and throbs
   // the level is by volume: height fraction holding 0,10,…,100 % of this shape's volume
@@ -28,7 +28,7 @@ Item {
   property bool glow: false       // a soft red glow along the outline
   Shape {
     anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
-    ShapePath { fillColor: "#211B1D"; strokeColor: q.alarm ? q.hot : q.glow ? "#C0454F" : "#6A5A5E"; strokeWidth: 0.9; PathSvg { path: q.path } }
+    ShapePath { fillColor: Theme.c("#211B1D"); strokeColor: q.alarm ? q.hot : q.glow ? Theme.c("#C0454F") : Theme.c("#6A5A5E"); strokeWidth: 0.9; PathSvg { path: q.path } }
     layer.enabled: q.glow || q.alarm
     layer.effect: MultiEffect { shadowEnabled: true; shadowColor: q.hot; shadowBlur: q.alarm ? 0.9 : 0.5; shadowOpacity: q.alarm ? 1 : 0.6; shadowHorizontalOffset: 0; shadowVerticalOffset: 0 }
   }
@@ -61,7 +61,7 @@ Item {
       PathSvg { path: q.icon }
     }
   }
-  Stamp { visible: q.icon !== ""; ink: "#9A8C90" }
+  Stamp { visible: q.icon !== ""; ink: Theme.c("#9A8C90") }
   Item {
     visible: q.icon !== ""
     anchors.bottom: parent.bottom; width: parent.width; clip: true
@@ -80,6 +80,6 @@ Item {
   // the rim drawn on top so the mouth stays crisp
   Shape {
     anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
-    ShapePath { fillColor: "transparent"; strokeColor: "#6A5A5E"; strokeWidth: 1; PathSvg { path: "M5.5 1.3 L10.5 1.3" } }
+    ShapePath { fillColor: "transparent"; strokeColor: Theme.c("#6A5A5E"); strokeWidth: 1; PathSvg { path: "M5.5 1.3 L10.5 1.3" } }
   }
 }

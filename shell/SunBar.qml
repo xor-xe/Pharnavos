@@ -83,7 +83,7 @@ PanelWindow {
     id: barBg
     width: parent.width; height: 46
     color: "#070607"
-    Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Qt.rgba(1, 59 / 255, 59 / 255, 0.18) }
+    Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Theme.alpha(Theme.red, 0.18) }
 
     // ---- horizon: the sun rises half-sunk out of the strip's lower edge, music rays fan out along it
     Item {
@@ -124,12 +124,12 @@ PanelWindow {
         anchors { right: parent.right; rightMargin: parent.width - hz.cx + hz.wing; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
         spacing: 9
         Text { id: hzTimeT; visible: false; text: hz.timeText; font { family: Theme.labelFor(text); pixelSize: 23 } }   // baseline only
-        Text { anchors.baseline: hzTimeT.baseline; text: hz.dateText; color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 23 } }
-        Text { anchors.baseline: hzTimeT.baseline; text: "·"; color: "#3A2E33"; font { family: Theme.sans; pixelSize: 15; bold: true } }
-        Text { visible: hz.word !== ""; anchors.baseline: hzTimeT.baseline; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+        Text { anchors.baseline: hzTimeT.baseline; text: hz.dateText; color: Theme.c("#C9C1C4"); font { family: Theme.labelFor(text); pixelSize: 23 } }
+        Text { anchors.baseline: hzTimeT.baseline; text: "·"; color: Theme.c("#3A2E33"); font { family: Theme.sans; pixelSize: 15; bold: true } }
+        Text { visible: hz.word !== ""; anchors.baseline: hzTimeT.baseline; text: hz.word; color: Theme.rose; font { family: Theme.labelFor(text); pixelSize: 23 } }
         // same font as the date (BPG has no bold, so white instead of bold makes the time lead)
         Text { anchors.baseline: hzTimeT.baseline; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 23 } }
-        Text { visible: hz.ampm !== ""; anchors.baseline: hzTimeT.baseline; text: hz.ampm; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 23 } }
+        Text { visible: hz.ampm !== ""; anchors.baseline: hzTimeT.baseline; text: hz.ampm; color: Theme.rose; font { family: Theme.labelFor(text); pixelSize: 23 } }
       }
       Column {
         // two lines: the part of the day (rosé) before the time, the date underneath
@@ -139,18 +139,18 @@ PanelWindow {
         Row {
           anchors.right: parent.right; spacing: 6
           Text { id: line1T; text: hz.timeText; visible: false; font { family: Theme.labelFor(text); pixelSize: 20 } }   // baseline only
-          Text { visible: hz.word !== ""; anchors.baseline: line1T.baseline; text: hz.word; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 13 } }
+          Text { visible: hz.word !== ""; anchors.baseline: line1T.baseline; text: hz.word; color: Theme.rose; font { family: Theme.labelFor(text); pixelSize: 13 } }
           Text { anchors.baseline: line1T.baseline; text: hz.timeText; color: "#FFFFFF"; font { family: Theme.labelFor(text); pixelSize: 20 } }
-          Text { visible: hz.ampm !== ""; anchors.baseline: line1T.baseline; text: hz.ampm; color: "#FF5A66"; font { family: Theme.labelFor(text); pixelSize: 13 } }
+          Text { visible: hz.ampm !== ""; anchors.baseline: line1T.baseline; text: hz.ampm; color: Theme.rose; font { family: Theme.labelFor(text); pixelSize: 13 } }
         }
-        Text { anchors.right: parent.right; text: hz.dateText; color: "#C9C1C4"; font { family: Theme.labelFor(text); pixelSize: 12 } }
+        Text { anchors.right: parent.right; text: hz.dateText; color: Theme.c("#C9C1C4"); font { family: Theme.labelFor(text); pixelSize: 12 } }
       }
 
       // the half-sunk sun: black gap ring, red rim, spinning collage Borjgali
-      Rectangle { x: hz.cx - 44; y: 0; width: 88; height: 88; radius: 44; color: "#070607"; border { width: 1; color: Qt.rgba(1, 59 / 255, 59 / 255, 0.35) } }
+      Rectangle { x: hz.cx - 44; y: 0; width: 88; height: 88; radius: 44; color: "#070607"; border { width: 1; color: Theme.alpha(Theme.red, 0.35) } }
       Rectangle {
         x: hz.cx - 38; y: 6; width: 76; height: 76; radius: 38
-        color: "#0E0B0D"; border { width: 1.5; color: root.red }
+        color: Theme.c("#0E0B0D"); border { width: 1.5; color: root.red }
         Image {
           anchors.centerIn: parent; width: 60; height: 60
           source: "file://" + Quickshell.shellDir + "/assets/cutouts/borjgali-collage.png"
@@ -179,7 +179,7 @@ PanelWindow {
         visible: root.playing && room >= 56
         x: hz.cx + 148; anchors.verticalCenter: parent.verticalCenter
         width: Math.min(room, slot.visible ? 42 + songM.advanceWidth + 4 : 64, 380); height: 38
-        Rectangle { anchors.fill: parent; radius: 19; color: "#0E0B0D"; border.color: "#3A2E33" }
+        Rectangle { anchors.fill: parent; radius: 19; color: Theme.c("#0E0B0D"); border.color: Theme.c("#3A2E33") }
         Shape {
           x: 12; anchors.verticalCenter: parent.verticalCenter; width: 14; height: 16; preferredRendererType: Shape.CurveRenderer
           ShapePath { fillColor: root.red; strokeWidth: 0; strokeColor: "transparent"; PathSvg { path: "M5 2 L14 0 L14 11 A2.6 2.6 0 1 1 12 8.6 L12 3 L7 4 L7 13 A2.6 2.6 0 1 1 5 10.6 Z" } }
@@ -227,11 +227,11 @@ PanelWindow {
           // the title fades in and out at the slot's ends while it scrolls
           Rectangle {
             visible: slot.long; width: 10; height: parent.height
-            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: "#0E0B0D" } GradientStop { position: 1; color: "#000E0B0D" } }
+            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: Theme.c("#0E0B0D") } GradientStop { position: 1; color: Theme.c("#000E0B0D") } }
           }
           Rectangle {
             visible: slot.long; anchors.right: parent.right; width: 14; height: parent.height
-            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: "#000E0B0D" } GradientStop { position: 1; color: "#0E0B0D" } }
+            gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: Theme.c("#000E0B0D") } GradientStop { position: 1; color: Theme.c("#0E0B0D") } }
           }
         }
       }
@@ -255,8 +255,8 @@ PanelWindow {
           Diamond {
             anchors.centerIn: parent
             size: ws.on ? 25 : 20
-            fill: ws.on ? root.red : ws.used ? root.cream : "#2E272A"
-            core: ws.on ? "#FFFFFF" : ws.used ? root.cream : "#2E272A"
+            fill: ws.on ? root.red : ws.used ? root.cream : Theme.c("#2E272A")
+            core: ws.on ? "#FFFFFF" : ws.used ? root.cream : Theme.c("#2E272A")
             glow: ws.on
           }
         }
@@ -307,7 +307,7 @@ PanelWindow {
             required property int index
             required property string modelData
             d: modelData
-            c: !Sys.online ? root.red : (index === 3 || index >= 3 - netBtn.arcs) ? netBtn.fg : "#2E272A"
+            c: !Sys.online ? root.red : (index === 3 || index >= 3 - netBtn.arcs) ? netBtn.fg : Theme.c("#2E272A")
           }
         }
         Icon { visible: !Sys.online; d: "M4 4l16 16"; c: root.red }
@@ -384,7 +384,7 @@ PanelWindow {
         Qvevri {
           anchors.centerIn: parent; scale: 1.05; glow: true
           // rosé, like a Tavkveri or Shavkapito: apart from the CPU's red and the memory's white
-          level: batHit.pct; glyph: root.jarLetter[Rice.t("ბ", "B")]; wine: "#E0607E"   // ბატარეა; the numbers are on hover
+          level: batHit.pct; glyph: root.jarLetter[Rice.t("ბ", "B")]; wine: Theme.pink   // ბატარეა; the numbers are on hover
           alarm: batHit.pct <= 15 && !batHit.charging
           pulse: alarm
           SequentialAnimation on opacity { running: batHit.charging; loops: Animation.Infinite; NumberAnimation { to: 0.7; duration: 900 } NumberAnimation { to: 1; duration: 900 } }
@@ -400,7 +400,7 @@ PanelWindow {
           anchors.centerIn: parent; spacing: 10
           Repeater {
             // პროცესორი and მეხსიერება, by their first letters; the numbers are on hover
-            model: [[root.jarLetter[Rice.t("პ", "C")], Sys.cpu, "#B0151F"], [root.jarLetter[Rice.t("მ", "M")], Sys.ram, "#C9C1C4"]]
+            model: [[root.jarLetter[Rice.t("პ", "C")], Sys.cpu, Theme.c("#B0151F")], [root.jarLetter[Rice.t("მ", "M")], Sys.ram, Theme.c("#C9C1C4")]]
             Item {
               required property var modelData
               width: 17; height: 26
@@ -421,7 +421,7 @@ PanelWindow {
           Rectangle {
             width: 14; height: 14; radius: 7; color: "transparent"; border { width: 2; color: "#5FBF77" }
             anchors.verticalCenter: parent.verticalCenter
-            Rectangle { width: 4; height: 4; radius: 2; color: "#0E0B0D"; x: 5; y: -1 }
+            Rectangle { width: 4; height: 4; radius: 2; color: Theme.c("#0E0B0D"); x: 5; y: -1 }
             RotationAnimation on rotation { from: 0; to: 360; duration: 1100; loops: Animation.Infinite; running: Apps.busy }
           }
           Text {
@@ -459,7 +459,7 @@ PanelWindow {
     // centred under the item, but kept on screen (they sit near the right edge)
     x: root.tipItem ? Math.min(root.width - width - 12, root.tipItem.mapToItem(root.contentItem, 0, 0).x + root.tipItem.width / 2 - width / 2) : 0; y: 52
     width: tipT.implicitWidth + 28; height: tipT.implicitHeight + 18; radius: 10
-    color: "#0E0B0D"; border.color: "#3A2E33"
+    color: Theme.c("#0E0B0D"); border.color: Theme.c("#3A2E33")
     Text {
       id: tipT; anchors.centerIn: parent
       text: root.tipText; lineHeight: 1.3; horizontalAlignment: Text.AlignHCenter
@@ -487,11 +487,11 @@ PanelWindow {
     property real pad: 8              // inner margin at each end
     anchors.verticalCenter: parent.verticalCenter
     width: pillRow.implicitWidth + 2 * pad; height: 38; radius: 19
-    color: "#0E0B0D"; border { width: 1; color: glow ? Qt.rgba(1, 42 / 255, 58 / 255, 0.55) : "#3A2E33" }
+    color: Theme.c("#0E0B0D"); border { width: 1; color: glow ? Theme.alpha(Theme.c("#FF2A3A"), 0.55) : Theme.c("#3A2E33") }
     // the glow: a blurred copy of the outline behind the pill
     Rectangle {
       visible: parent.glow; z: -1
-      anchors.fill: parent; radius: parent.radius; color: "transparent"; border { width: 2; color: Qt.rgba(1, 42 / 255, 58 / 255, 0.7) }
+      anchors.fill: parent; radius: parent.radius; color: "transparent"; border { width: 2; color: Theme.alpha(Theme.c("#FF2A3A"), 0.7) }
       layer.enabled: visible
       layer.effect: MultiEffect { blurEnabled: true; blur: 0.7; blurMax: 12 }
     }
@@ -500,9 +500,9 @@ PanelWindow {
 
   component IconBtn: MouseArea {
     property bool on: true
-    readonly property color fg: containsMouse ? "#FFFFFF" : on ? "#C9C1C4" : "#5A4E53"
+    readonly property color fg: containsMouse ? "#FFFFFF" : on ? Theme.c("#C9C1C4") : Theme.c("#5A4E53")
     width: 34; height: 34; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: height / 2; color: parent.containsMouse ? "#1A1517" : "transparent" }
+    Rectangle { anchors.fill: parent; radius: height / 2; color: parent.containsMouse ? Theme.c("#1A1517") : "transparent" }
   }
 
   // the number beside the sound / brightness icon: its digits (not its line box) centred on the icon

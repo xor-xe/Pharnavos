@@ -13,6 +13,8 @@ let
     PHARNAVOS_DANCE = if cfg.wallpaper.dance == null then null else "${cfg.wallpaper.dance}";
     PHARNAVOS_FONT_HEADING = if cfg.fonts.heading == null then null else "${cfg.fonts.heading}";
     PHARNAVOS_FONT_LABEL = if cfg.fonts.label == null then null else "${cfg.fonts.label}";
+    # window borders follow the colour theme, unless you set your own border colours
+    PHARNAVOS_BORDERS = if ownBorders then "1" else null;
   } // lib.optionalAttrs cfg.ai.enable (lib.filterAttrs (_: v: v != null) {
     PHARNAVOS_AI_API = cfg.ai.api;
     PHARNAVOS_AI_URL = cfg.ai.url;
@@ -28,6 +30,11 @@ let
   '');
 
   isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
+  # the window borders as Pharnavos ships them; ownBorders: they're still ours (not set by you)
+  border = "rgba(ff3b3bff) rgba(ede6daff) rgba(ff3b3bff) 45deg";
+  borderLua = { colors = [ "rgba(ff3b3bff)" "rgba(ede6daff)" "rgba(ff3b3bff)" ]; angle = 45; };
+  ownBorders = cfg.hyprland.enable && lib.attrByPath (if isLua then [ "config" "general" "col" "active_border" ] else [ "general" "col.active_border" ]) null
+    config.wayland.windowManager.hyprland.settings == (if isLua then borderLua else border);
   dpms = state: if isLua then "hyprctl dispatch 'hl.dsp.dpms({ action = \"${state}\" })'" else "hyprctl dispatch dpms ${state}";
   launcherCmd = "${bin}/pharnavos ipc call launcher toggle";
   wallCmd = dir: "${bin}/pharnavos ipc call wall ${dir}";
@@ -45,7 +52,7 @@ let
       border_size = mkDefault 2;
       gaps_in = mkDefault 6;
       gaps_out = mkDefault 12;
-      "col.active_border" = mkDefault "rgba(ff3b3bff) rgba(ede6daff) rgba(ff3b3bff) 45deg";
+      "col.active_border" = mkDefault border;
       "col.inactive_border" = mkDefault "rgba(2a2226cc)";
     };
     decoration = {
@@ -94,7 +101,7 @@ let
         gaps_in = mkDefault 6;
         gaps_out = mkDefault 12;
         col = {
-          active_border = mkDefault { colors = [ "rgba(ff3b3bff)" "rgba(ede6daff)" "rgba(ff3b3bff)" ]; angle = 45; };
+          active_border = mkDefault borderLua;
           inactive_border = mkDefault "rgba(2a2226cc)";
         };
       };

@@ -279,6 +279,7 @@ PanelWindow {
       anchors.fill: parent
       property size res: Qt.size(width, height)
       property real radius: 600 * root.s
+      property color tint: Theme.c("#780A14")
       fragmentShader: "file://" + Quickshell.shellDir + "/shaders/glow.frag.qsb"
     }
 
@@ -298,6 +299,7 @@ PanelWindow {
       property real glyphs: 33
       // the loop's seam: a short dip, so the jump from the last pose to the first doesn't snap
       property real fade: root.dance ? Math.min(1, (f + 1) / 5, (root.dance.frames - f) / 5) : 1
+      property color tint: Theme.c("#FF2832")
       fragmentShader: "file://" + Quickshell.shellDir + "/shaders/dance.frag.qsb"
     }
 
@@ -327,7 +329,7 @@ PanelWindow {
           y: modelData.y * root.s - height / 2
           rotation: modelData.rot
           color: l > 0 ? Qt.rgba(1, 1, 1, 0.55 + l * 0.45)
-                       : red ? Qt.rgba(1, 42 / 255, 58 / 255, -l) : Qt.rgba(248 / 255, 244 / 255, 236 / 255, -l)
+                       : red ? Theme.alpha(Theme.c("#FF2A3A"), -l) : Qt.rgba(248 / 255, 244 / 255, 236 / 255, -l)
           style: l > 0.6 ? Text.Outline : Text.Normal
           styleColor: Qt.rgba(1, 1, 1, 0.25)
         }

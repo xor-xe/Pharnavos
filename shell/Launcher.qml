@@ -25,8 +25,8 @@ PanelWindow {
 
   readonly property color red: Theme.red
   readonly property color cream: Theme.cream
-  readonly property color grey: "#8C8186"
-  readonly property color line: "#3A2E33"
+  readonly property color grey: Theme.c("#8C8186")
+  readonly property color line: Theme.c("#3A2E33")
 
   // ---- open / close ------------------------------------------------------------------------
   property real shown: 0     // 0 → 1 fade + drop
@@ -229,7 +229,7 @@ PanelWindow {
     x: (parent.width - width) / 2; y: gap - 24 * (1 - lw.shown)
     width: 960; height: col.implicitHeight + 40
     opacity: lw.shown
-    color: "#0B090A"; radius: 6
+    color: Theme.c("#0B090A"); radius: 6
     MouseArea { anchors.fill: parent }   // eat clicks so they don't close
 
     Stitch { anchors.fill: parent; inset: 6; stroke: 3; thread: lw.modeColor; to: lw.sewn }
@@ -254,7 +254,7 @@ PanelWindow {
             visible: !parent.text
             // only the prefixes that exist (? and # need programs.pharnavos.ai)
             text: Rice.t("რას ეძებ?  ·  ", "Search…  ·  ") + lw.prefixes.split("").map(k => k + " " + ({ "=": Rice.t("გამოთვლა", "calc"), ">": Rice.t("ბრძანება", "run"), "?": Rice.t("კითხვა", "ask"), "@": Rice.t("ფანჯრები", "windows"), "#": Rice.t("თარგმნა", "translate"), "!": Rice.t("ვები", "web"), "+": Rice.t("დაყენება", "install"), "-": Rice.t("წაშლა", "remove") })[k]).join("  ")
-            color: "#5A5055"; font: parent.font; elide: Text.ElideRight; width: parent.width
+            color: Theme.c("#5A5055"); font: parent.font; elide: Text.ElideRight; width: parent.width
           }
           Keys.onPressed: ev => {
             if (ev.key === Qt.Key_Down) { lw.sel = (lw.selI + 1) % Math.max(1, lw.count); ev.accepted = true }
@@ -268,8 +268,8 @@ PanelWindow {
           id: badge
           anchors { right: parent.right; verticalCenter: parent.verticalCenter }
           width: badgeT.implicitWidth + 20; height: 24; radius: 4
-          color: lw.pfx ? lw.modeColor : "transparent"; border.color: lw.pfx ? lw.modeColor : "#2E272A"
-          Text { id: badgeT; anchors.centerIn: parent; text: lw.modes[lw.pfx][1]; color: lw.pfx ? "#070607" : "#5A5055"; font { family: Theme.mono; pixelSize: 11; bold: true } }
+          color: lw.pfx ? lw.modeColor : "transparent"; border.color: lw.pfx ? lw.modeColor : Theme.c("#2E272A")
+          Text { id: badgeT; anchors.centerIn: parent; text: lw.modes[lw.pfx][1]; color: lw.pfx ? "#070607" : Theme.c("#5A5055"); font { family: Theme.mono; pixelSize: 11; bold: true } }
         }
         Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 2; color: lw.line }
       }
@@ -286,10 +286,10 @@ PanelWindow {
             required property int index
             width: 64; height: 64; hoverEnabled: true
             onClicked: lw.launch(modelData)
-            Rectangle { anchors.fill: parent; radius: 4; color: "#0B090A"; border.color: pin.containsMouse ? lw.red : "#2E272A" }
+            Rectangle { anchors.fill: parent; radius: 4; color: Theme.c("#0B090A"); border.color: pin.containsMouse ? lw.red : Theme.c("#2E272A") }
             Image { x: 14; y: 6; width: 36; height: 36; sourceSize: Qt.size(72, 72); mipmap: true; source: Theme.iconFor(pin.modelData.icon) }
-            Text { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 5 } width: 58; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: pin.modelData.name; color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 10; bold: true } }
-            Text { x: 52; y: 3; text: pin.index + 1; color: "#5A5055"; font { family: Theme.mono; pixelSize: 9; bold: true } }
+            Text { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 5 } width: 58; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: pin.modelData.name; color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 10; bold: true } }
+            Text { x: 52; y: 3; text: pin.index + 1; color: Theme.c("#5A5055"); font { family: Theme.mono; pixelSize: 9; bold: true } }
           }
         }
       }
@@ -321,7 +321,7 @@ PanelWindow {
               Text {
                 visible: lw.aiText !== "" || aiProc.running
                 width: parent.width; wrapMode: Text.Wrap; maximumLineCount: 12; elide: Text.ElideRight
-                text: lw.aiText || Rice.t("ფიქრობს…", "Thinking…"); color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 14 }
+                text: lw.aiText || Rice.t("ფიქრობს…", "Thinking…"); color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 14 }
                   lineHeight: 1.3
               }
               Text {
@@ -449,7 +449,7 @@ PanelWindow {
             x: 20; width: parent.width - 20; spacing: 10
             Text { text: lw.modes[lw.pfx]?.[0].toUpperCase() ?? ""; color: lw.modeColor; font { family: Theme.sans; pixelSize: 10; weight: Font.Black; letterSpacing: 1.6 } }
             Text { width: parent.width; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText; text: lw.pkg?.name ?? ""; color: "#FFFFFF"; font { family: Theme.sans; pixelSize: 22; weight: Font.Black } }
-            Text { visible: text !== ""; width: parent.width; wrapMode: Text.Wrap; textFormat: Text.PlainText; text: lw.pkg?.desc ?? ""; color: "#C9C1C4"; lineHeight: 1.3; font { family: Theme.sans; pixelSize: 13 } }
+            Text { visible: text !== ""; width: parent.width; wrapMode: Text.Wrap; textFormat: Text.PlainText; text: lw.pkg?.desc ?? ""; color: Theme.c("#C9C1C4"); lineHeight: 1.3; font { family: Theme.sans; pixelSize: 13 } }
             // not free software: one more Enter allows it (this app only)
             Rectangle {
               visible: lw.confirm !== "" && lw.confirm === lw.pkg?.name
@@ -510,7 +510,7 @@ PanelWindow {
                   width: 30; height: 30; hoverEnabled: true
                   onClicked: lw.launchOn(lw.pick, index + 1)
                   Rectangle { anchors.fill: parent; radius: 4; color: "transparent"; border.color: wsBtn.containsMouse ? lw.red : lw.line }
-                  Text { anchors.centerIn: parent; text: wsBtn.modelData; color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 13; weight: Font.ExtraBold } }
+                  Text { anchors.centerIn: parent; text: wsBtn.modelData; color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 13; weight: Font.ExtraBold } }
                 }
               }
             }
@@ -535,12 +535,12 @@ PanelWindow {
               Row {
                 id: chipRow; anchors.centerIn: parent; spacing: 6
                 Text { text: chip.modelData; color: lw.red; font { family: Theme.mono; pixelSize: 11; bold: true } }
-                Text { text: lw.modes[chip.modelData][0]; color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 11; bold: true } }
+                Text { text: lw.modes[chip.modelData][0]; color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 11; bold: true } }
               }
             }
           }
         }
-        Text { anchors { right: parent.right; verticalCenter: parent.verticalCenter } text: "↑↓ ↵ · Alt+1…8 · Esc"; color: "#5A5055"; font { family: Theme.mono; pixelSize: 11 } }
+        Text { anchors { right: parent.right; verticalCenter: parent.verticalCenter } text: "↑↓ ↵ · Alt+1…8 · Esc"; color: Theme.c("#5A5055"); font { family: Theme.mono; pixelSize: 11 } }
       }
     }
   }
@@ -550,7 +550,7 @@ PanelWindow {
     property string label
     property string tag
     width: parent.width; height: 36; hoverEnabled: true
-    Rectangle { anchors.fill: parent; radius: 4; color: pb.containsMouse ? Qt.rgba(1, 59 / 255, 59 / 255, 0.06) : "transparent"; border.color: pb.containsMouse ? lw.red : "transparent" }
+    Rectangle { anchors.fill: parent; radius: 4; color: pb.containsMouse ? Theme.alpha(Theme.red, 0.06) : "transparent"; border.color: pb.containsMouse ? lw.red : "transparent" }
     Rectangle { x: 10; anchors.verticalCenter: parent.verticalCenter; width: 8; height: 8; rotation: 45; color: lw.red }
     Text { x: 28; width: parent.width - 80; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight; textFormat: Text.PlainText; text: pb.label; color: lw.cream; font { family: Theme.sans; pixelSize: 13; weight: Font.DemiBold } }
     Text { anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter } text: pb.tag; color: lw.grey; font { family: Theme.sans; pixelSize: 12; bold: true } }

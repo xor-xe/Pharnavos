@@ -95,6 +95,7 @@ Item {
     property rect maskRect: ls.variant === "flag"
       ? Qt.rect(origin.x / width, origin.y / height, ls.fc * ls.cell / width, ls.fr * ls.cell / height)
       : Qt.rect(0, (height - width * 896 / 1600) / 2 / height, 1, width * 896 / 1600 / height)
+    property color tint: ls.variant === "flag" ? "#FF2A3A" : Theme.c("#FF2A3A")   // a flag stays red
     fragmentShader: "file://" + Quickshell.shellDir + "/shaders/lockrain.frag.qsb"
   }
   // flag: dark well behind the clock so it reads over the cross
@@ -155,7 +156,7 @@ Item {
     layer.enabled: true
     layer.effect: MultiEffect {
       shadowEnabled: true; shadowHorizontalOffset: 0; shadowVerticalOffset: 0
-      shadowColor: ls.mood === "ok" ? "#FFD27A" : "#FF2A3A"
+      shadowColor: ls.mood === "ok" ? "#FFD27A" : Theme.c("#FF2A3A")
       shadowBlur: ls.mood === "ok" ? 1 : ls.mood === "bad" ? 0.8 : 0.15 + Math.min(7, ls.pwLen) * 0.08
     }
   }
@@ -177,12 +178,12 @@ Item {
     ClockMark {
       anchors.horizontalCenter: parent.horizontalCenter
       date: ls.now; fmt: ls.clockFmt; fitWidth: dateText.implicitWidth; outline: true
-      wordColor: "#FF5A66"
+      wordColor: Theme.rose
     }
     Text {
       id: dateText
       anchors.horizontalCenter: parent.horizontalCenter
-      color: "#FF5A66"; style: Text.Outline; styleColor: "#000000"
+      color: Theme.rose; style: Text.Outline; styleColor: "#000000"
       font { family: Theme.labelFor(text); pixelSize: (ls.variant === "borj" ? 24 : 20) * ls.s }
       text: Theme.days[ls.now.getDay()] + ", " + ls.now.getDate() + " "
             + Theme.months[ls.now.getMonth()]
@@ -218,7 +219,7 @@ Item {
       anchors.horizontalCenter: parent.horizontalCenter
       // grows with the password; past 14 letters it stops and shows only the newest 14
       width: Math.max(260 * ls.s, typed.implicitWidth + 40 * ls.s); height: 38 * ls.s; radius: height / 2
-      color: "#C7000000"; border.color: ls.mood === "bad" ? Theme.red : ls.busy ? Theme.cream : "#3A2E33"
+      color: "#C7000000"; border.color: ls.mood === "bad" ? Theme.red : ls.busy ? Theme.cream : Theme.c("#3A2E33")
       // checking: the border breathes
       property real w: 1
       border.width: ls.busy ? w : 1
@@ -262,13 +263,13 @@ Item {
         visible: ls.pwLen === 0
         anchors.centerIn: parent
         text: ls.busy ? "…" : Rice.t("პაროლი", "password")
-        color: "#8C8186"; font { family: Theme.sans; pixelSize: 14 * ls.s; bold: true }
+        color: Theme.c("#8C8186"); font { family: Theme.sans; pixelSize: 14 * ls.s; bold: true }
       }
     }
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
       height: 20 * ls.s
-      text: ls.busy ? Rice.t("მოწმდება…", "Checking…") : ls.message; color: ls.busy ? "#C9C1C4" : Theme.red; style: Text.Outline; styleColor: "#000000"
+      text: ls.busy ? Rice.t("მოწმდება…", "Checking…") : ls.message; color: ls.busy ? Theme.c("#C9C1C4") : Theme.red; style: Text.Outline; styleColor: "#000000"
       font { family: Theme.sans; pixelSize: 14 * ls.s; weight: Font.ExtraBold }
     }
   }

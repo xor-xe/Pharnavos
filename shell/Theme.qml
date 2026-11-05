@@ -3,12 +3,51 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
 
 Singleton {
   id: root
-  readonly property color red: "#FF3B3B"
+  // colour themes, picked in the control centre: Crimson (the original) and Black Sea. Every reddish
+  // colour in the shell goes through c(): Crimson keeps it, Black Sea turns its hue to blue and keeps
+  // its lightness, so the wine-tinted greys become slate. Cream, amber, green and the flag stay.
+  // [id, name, swatch, hue, saturation factor, rose, pink]; gold stays toward yellow and calmer, so it
+  // never reads orange. rose: the lighter tint beside the accent (the clock's დილის, the lock screen's
+  // date); pink: a second hue for data next to the accent (battery, upload, a connected device)
+  readonly property var themes: [["crimson", Rice.t("კრწანისი", "Crimson"), "#FF3B3B", -1, 1, "#FF5A66", "#E0607E"],
+                                 ["blue", Rice.t("შავი ზღვა", "Black Sea"), "#3D9BE9", 0.575, 0.8, "#72D2EE", "#9AA8FF"],
+                                 ["gold", Rice.t("ჭურჭელი", "Golden"), "#E3BE55", 0.13, 0.7, "#F2DB92", "#D0607A"],
+                                 ["green", Rice.t("მინდორი", "Grassland"), "#62D87C", 0.37, 0.6, "#A6EBB0", "#B98BE0"]]
+  readonly property var theme: themes.find(t => t[0] === Rice.cfg.theme) ?? themes[0]
+  readonly property real hue: theme[3]
+  function c(col) {
+    const q = Qt.lighter(col, 1), h = q.hslHue;
+    if (hue < 0 || h < 0 || q.hslSaturation === 0 || (h > 0.07 && h < 0.88)) return q;
+    return Qt.hsla(hue, q.hslSaturation * theme[4], q.hslLightness, q.a);
+  }
+  function alpha(col, a) { return Qt.rgba(col.r, col.g, col.b, a) }
+  readonly property color red: c("#FF3B3B")    // the accent ("red" from before there were themes)
+  // window borders and their glow follow the theme (only while they're Pharnavos's own: PHARNAVOS_BORDERS);
+  // again after a Hyprland config reload, which puts the configured ones back
+  readonly property bool borders: Quickshell.env("PHARNAVOS_BORDERS") === "1"
+  function hex(col, a) { return "rgba(" + col.toString().slice(1) + a + ")" }
+  function paint() {
+    if (!borders) return;
+    const on = hex(red, "ff"), cr = hex(cream, "ff"), off = hex(c("#2A2226"), "cc"), glow = hex(red, "55");
+    paintP.command = Rice.hyprLua
+      ? ["hyprctl", "eval", "hl.config({ general = { col = { active_border = { colors = { \"" + on + "\", \"" + cr + "\", \"" + on + "\" }, angle = 45 }, inactive_border = \"" + off + "\" } }, decoration = { shadow = { color = \"" + glow + "\" } } })"]
+      : ["hyprctl", "--batch", "keyword general:col.active_border " + on + " " + cr + " " + on + " 45deg ; keyword general:col.inactive_border " + off + " ; keyword decoration:shadow:color " + glow];
+    paintP.running = true;
+  }
+  Process { id: paintP }
+  onHueChanged: Qt.callLater(paint)   // after the colours that hang on the hue have caught up
+  Connections { target: Rice; function onHyprLuaChanged() { root.paint() } }
+  Connections { target: Hyprland; function onRawEvent(e) { if (e.name === "configreloaded") root.paint() } }
+  Component.onCompleted: paint()
+  readonly property color rose: theme[5]
+  readonly property color pink: theme[6]
   readonly property color cream: "#EDE6DA"
-  readonly property color dim: "#2A2226"
+  readonly property color dim: c("#2A2226")
 
   readonly property string brush: brushF.name     // headings, titles, greetings
   readonly property string label: labelF.name     // captions, tabs, date

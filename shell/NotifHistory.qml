@@ -31,7 +31,7 @@ PanelWindow {
 
   readonly property color red: Theme.red
   readonly property color cream: Theme.cream
-  readonly property color grey: "#8C8186"
+  readonly property color grey: Theme.c("#8C8186")
 
   HyprlandFocusGrab { windows: [hw, hw.bar]; active: Rice.notifShowAll && hw.here; onCleared: Rice.notifShowAll = false }
 
@@ -142,7 +142,7 @@ PanelWindow {
   Rectangle {
     id: panel
     width: 420; height: Math.min(hw.height, col.implicitHeight + 8)
-    color: "#070607"; border.color: "#2A2226"
+    color: "#070607"; border.color: Theme.c("#2A2226")
     radius: 0; bottomRightRadius: 28
     focus: true
     Keys.onEscapePressed: Rice.notifShowAll = false
@@ -171,7 +171,7 @@ PanelWindow {
           y: titleT.parent.y + titleT.y + (titleT.height - height) / 2
           width: clearT.implicitWidth + 28; height: 30; hoverEnabled: true
           onClicked: list.opacity = 0
-          Rectangle { anchors.fill: parent; radius: 15; color: "#0E0B0D"; border.color: clearBtn.containsMouse ? hw.red : "#3A2E33" }
+          Rectangle { anchors.fill: parent; radius: 15; color: Theme.c("#0E0B0D"); border.color: clearBtn.containsMouse ? hw.red : Theme.c("#3A2E33") }
           Text { id: clearT; anchors.centerIn: parent; text: Rice.t("გასუფთავება", "Clear"); color: hw.cream; font { family: Theme.sans; pixelSize: 12; bold: true } }
         }
       }
@@ -198,14 +198,14 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter; width: 84; height: 84
                 Shape {
                   anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
-                  ShapePath { strokeColor: "#3A2E33"; strokeWidth: 2; fillColor: "transparent"; strokeStyle: ShapePath.DashLine; dashPattern: [3, 2]; PathAngleArc { centerX: 42; centerY: 42; radiusX: 41; radiusY: 41; startAngle: 0; sweepAngle: 360 } }
+                  ShapePath { strokeColor: Theme.c("#3A2E33"); strokeWidth: 2; fillColor: "transparent"; strokeStyle: ShapePath.DashLine; dashPattern: [3, 2]; PathAngleArc { centerX: 42; centerY: 42; radiusX: 41; radiusY: 41; startAngle: 0; sweepAngle: 360 } }
                 }
                 Shape {
                   anchors.centerIn: parent; width: 30; height: 40; preferredRendererType: Shape.CurveRenderer
-                  ShapePath { strokeColor: "#5A4E53"; strokeWidth: 2.4; fillColor: "transparent"; capStyle: ShapePath.RoundCap; scale: Qt.size(1.5, 1.54); PathSvg { path: "M10 2 C9.4 9 10.6 17 10 24 M2 11 Q10 6 18 11" } }
+                  ShapePath { strokeColor: Theme.c("#5A4E53"); strokeWidth: 2.4; fillColor: "transparent"; capStyle: ShapePath.RoundCap; scale: Qt.size(1.5, 1.54); PathSvg { path: "M10 2 C9.4 9 10.6 17 10 24 M2 11 Q10 6 18 11" } }
                 }
               }
-              Text { anchors.horizontalCenter: parent.horizontalCenter; text: Rice.t("მშვიდობაა", "All quiet"); color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 18; weight: Font.Medium; letterSpacing: 0.5 } }
+              Text { anchors.horizontalCenter: parent.horizontalCenter; text: Rice.t("მშვიდობაა", "All quiet"); color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 18; weight: Font.Medium; letterSpacing: 0.5 } }
             }
           }
           Item { width: 1; height: 8 }
@@ -238,7 +238,7 @@ PanelWindow {
 
     Item {
       width: parent.width; height: body.implicitHeight + 32
-      Rectangle { anchors.fill: parent; color: hc.containsMouse ? "#110D0F" : "#0B090A" }
+      Rectangle { anchors.fill: parent; color: hc.containsMouse ? Theme.c("#110D0F") : Theme.c("#0B090A") }
       Stitch { anchors.fill: parent; inset: 5; stroke: 2; thread: hc.thread }
     }
 
@@ -268,7 +268,7 @@ PanelWindow {
           visible: text !== ""
           width: parent.width; text: hc.n?.body ?? ""; textFormat: Text.PlainText
           wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
-          color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 13 }
+          color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 13 }
         }
         Item {
           visible: hc.pic !== ""

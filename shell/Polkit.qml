@@ -25,7 +25,7 @@ Scope {
     Rectangle {
       anchors.centerIn: parent
       width: 460; height: box.implicitHeight + 48
-      color: "#0B090A"; radius: 6
+      color: Theme.c("#0B090A"); radius: 6
       Stitch { anchors.fill: parent; inset: 6; stroke: 3; thread: Theme.red }
       Column {
         id: box
@@ -42,7 +42,7 @@ Scope {
           }
         }
         Rectangle {
-          width: parent.width; height: 44; radius: 4; color: "transparent"; border.color: pw.activeFocus ? Theme.red : "#3A2E33"
+          width: parent.width; height: 44; radius: 4; color: "transparent"; border.color: pw.activeFocus ? Theme.red : Theme.c("#3A2E33")
           TextInput {
             id: pw
             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
@@ -58,15 +58,15 @@ Scope {
           Text {
             anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
             visible: !pw.text; text: (root.flow?.inputPrompt || Rice.t("პაროლი", "Password")).replace(/:\s*$/, "")
-            color: "#5A5055"; font { family: Theme.sans; pixelSize: 14 }
+            color: Theme.c("#5A5055"); font { family: Theme.sans; pixelSize: 14 }
           }
         }
         Text {
           visible: text !== ""; width: parent.width; wrapMode: Text.Wrap; textFormat: Text.PlainText
           text: root.flow?.supplementaryMessage ?? ""
-          color: root.flow?.supplementaryIsError ? Theme.red : "#8C8186"; font { family: Theme.sans; pixelSize: 12; bold: true }
+          color: root.flow?.supplementaryIsError ? Theme.red : Theme.c("#8C8186"); font { family: Theme.sans; pixelSize: 12; bold: true }
         }
-        Text { text: Rice.t("↵ დადასტურება · Esc გაუქმება", "↵ confirm · Esc cancel"); color: "#5A5055"; font { family: Theme.mono; pixelSize: 11 } }
+        Text { text: Rice.t("↵ დადასტურება · Esc გაუქმება", "↵ confirm · Esc cancel"); color: Theme.c("#5A5055"); font { family: Theme.mono; pixelSize: 11 } }
       }
     }
   }

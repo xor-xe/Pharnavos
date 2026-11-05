@@ -15,6 +15,7 @@ layout(std140, binding = 0) uniform buf {
     float t;         // seconds
     float glyphs;    // glyph count in the atlas
     float fade;      // 0..1: dips at the loop's seam
+    vec4 tint;       // letter colour (the colour theme's accent)
 };
 layout(binding = 1) uniform sampler2D atlas;
 layout(binding = 2) uniform sampler2D sheet;
@@ -31,5 +32,5 @@ void main() {
     float k = floor(hash(g + floor(t * 1.6 * (0.6 + 0.8 * h) + h * 37.0) * 0.731) * glyphs);
     vec2 l = clamp(fract((p - origin) / cell), 0.03, 0.97);
     float a = texture(atlas, vec2((k + l.x) / glyphs, l.y)).a * fade;
-    fragColor = vec4(vec3(1.0, 0.157, 0.196) * a, a) * qt_Opacity;
+    fragColor = vec4(tint.rgb * a, a) * qt_Opacity;
 }

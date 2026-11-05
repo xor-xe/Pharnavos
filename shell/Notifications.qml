@@ -109,7 +109,7 @@ PanelWindow {
       }
     }
 
-    Rectangle { anchors.fill: parent; radius: 4; color: "#0B090A"; opacity: card.leaving ? 1 - card.unpicked : 1 }
+    Rectangle { anchors.fill: parent; radius: 4; color: Theme.c("#0B090A"); opacity: card.leaving ? 1 - card.unpicked : 1 }
 
     Stitch { width: card.width; height: card.implicitHeight; thread: card.thread; from: card.unpicked; to: card.sewn }
     Shape {
@@ -140,7 +140,7 @@ PanelWindow {
       Column {
         width: parent.width; spacing: 2
         Text { width: parent.width; elide: Text.ElideRight; text: card.n?.summary ?? ""; textFormat: Text.PlainText; color: "#FFFFFF"; font { family: Theme.sans; pixelSize: 16; weight: Font.ExtraBold } }
-        Text { width: parent.width; text: card.n?.body ?? ""; textFormat: Text.PlainText; visible: text !== ""; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: "#C9C1C4"; font { family: Theme.sans; pixelSize: 13 } }
+        Text { width: parent.width; text: card.n?.body ?? ""; textFormat: Text.PlainText; visible: text !== ""; wrapMode: Text.Wrap; maximumLineCount: 3; elide: Text.ElideRight; color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 13 } }
         Row {
           visible: (card.n?.actions ?? []).filter(a => a.identifier !== "default").length > 0
           spacing: 6; topPadding: 6
