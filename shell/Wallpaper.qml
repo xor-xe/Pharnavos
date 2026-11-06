@@ -310,6 +310,8 @@ PanelWindow {
       x: (root.width - width) / 2; y: 0
       id: spinner
       rotation: 0
+      // turns around the vertical axis as far as it turns in its plane (like the bar's and the lock's)
+      transform: Rotation { origin { x: spinner.width / 2; y: spinner.height / 2 } axis { x: 0; y: 1; z: 0 } angle: spinner.rotation }
       Item {
         anchors.fill: parent
         layer.enabled: true; layer.smooth: true

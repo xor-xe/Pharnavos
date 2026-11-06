@@ -145,12 +145,14 @@ Item {
   onPwLenChanged: if (variant === "borj" && pwLen > 0) spd = Math.min(420, spd + 72 + Math.min(pwLen, 10) * 12)
   onMoodChanged: if (variant === "borj") spd = mood === "ok" ? 1200 : mood === "bad" ? -540 : spd
   Image {
+    id: borj
     visible: ls.variant === "borj"
     width: 460 * ls.s; height: width
     x: ls.width / 2 - width / 2; y: 450 * ls.s - height / 2
     source: "file://" + Quickshell.shellDir + "/assets/cutouts/borjgali-collage.png"
     sourceSize: Qt.size(width, height); mipmap: true
     rotation: ls.spin
+    transform: Rotation { origin { x: borj.width / 2; y: borj.height / 2 } axis { x: 0; y: 1; z: 0 } angle: ls.spin }
     scale: ls.mood === "ok" ? 1.3 : 1 + Math.min(7, ls.pwLen) * 0.03
     Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
     layer.enabled: true

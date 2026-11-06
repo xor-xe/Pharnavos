@@ -156,6 +156,8 @@ PanelWindow {
           source: "file://" + Quickshell.shellDir + "/assets/cutouts/borjgali-collage.png"
           sourceSize: Qt.size(120, 120); mipmap: true
           id: arms
+          // turns around the vertical axis as far as it turns in its plane
+          transform: Rotation { origin { x: arms.width / 2; y: arms.height / 2 } axis { x: 0; y: 1; z: 0 } angle: arms.rotation }
           scale: root.playing ? 1 + Math.min(root.bands[0] * 1.5, 120) / 900 : 1
           Behavior on scale { NumberAnimation { duration: 80 } }
         }
