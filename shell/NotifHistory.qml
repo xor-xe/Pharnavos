@@ -200,9 +200,11 @@ PanelWindow {
                   anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
                   ShapePath { strokeColor: Theme.c("#3A2E33"); strokeWidth: 2; fillColor: "transparent"; strokeStyle: ShapePath.DashLine; dashPattern: [3, 2]; PathAngleArc { centerX: 42; centerY: 42; radiusX: 41; radiusY: 41; startAngle: 0; sweepAngle: 360 } }
                 }
+                // the Bolnisi cross, as on the bar's control-centre button (24 grid, scaled up)
                 Shape {
-                  anchors.centerIn: parent; width: 30; height: 40; preferredRendererType: Shape.CurveRenderer
-                  ShapePath { strokeColor: Theme.c("#5A4E53"); strokeWidth: 2.4; fillColor: "transparent"; capStyle: ShapePath.RoundCap; scale: Qt.size(1.5, 1.54); PathSvg { path: "M10 2 C9.4 9 10.6 17 10 24 M2 11 Q10 6 18 11" } }
+                  anchors.centerIn: parent; width: 24; height: 24; scale: 2.2; preferredRendererType: Shape.CurveRenderer
+                  ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: Theme.c("#5A4E53"); fillRule: ShapePath.WindingFill; PathSvg { path: "M11.24 12 Q11.41 6.96 8.14 3.94 Q12 5.78 15.86 3.94 Q12.59 6.96 12.76 12ZM12 11.24 Q17.04 11.41 20.06 8.14 Q18.22 12 20.06 15.86 Q17.04 12.59 12 12.76ZM12.76 12 Q12.59 17.04 15.86 20.06 Q12 18.22 8.14 20.06 Q11.41 17.04 11.24 12ZM12 12.76 Q6.96 12.59 3.94 15.86 Q5.78 12 3.94 8.14 Q6.96 11.41 12 11.24Z" } }
+                  ShapePath { strokeWidth: 0; strokeColor: "transparent"; fillColor: Theme.c("#5A4E53"); PathSvg { path: "M10.9 12 A1.1 1.1 0 1 1 13.1 12 A1.1 1.1 0 1 1 10.9 12Z" } }
                 }
               }
               Text { anchors.horizontalCenter: parent.horizontalCenter; text: Rice.t("მშვიდობაა", "All quiet"); color: Theme.c("#C9C1C4"); font { family: Theme.sans; pixelSize: 18; weight: Font.Medium; letterSpacing: 0.5 } }

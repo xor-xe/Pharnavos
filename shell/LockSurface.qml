@@ -152,7 +152,7 @@ Item {
     source: "file://" + Quickshell.shellDir + "/assets/cutouts/borjgali-collage.png"
     sourceSize: Qt.size(width, height); mipmap: true
     rotation: ls.spin
-    transform: Rotation { origin { x: borj.width / 2; y: borj.height / 2 } axis { x: 0; y: 1; z: 0 } angle: ls.spin }
+    transform: Scale { origin.x: borj.width / 2; xScale: -1 }   // mirrored: blades face left, turns left
     scale: ls.mood === "ok" ? 1.3 : 1 + Math.min(7, ls.pwLen) * 0.03
     Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
     layer.enabled: true

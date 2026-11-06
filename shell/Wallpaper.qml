@@ -24,10 +24,11 @@ PanelWindow {
   readonly property string anim: Rice.cfg.anim
   readonly property int speed: Rice.cfg.speed
   readonly property int spin: Rice.cfg.spin
+  readonly property color hi: Theme.wallInk(Rice.cfg.hi)
   readonly property int size: Rice.cfg.size
   readonly property int shape: Rice.cfg.shape
   readonly property int contrast: Rice.cfg.contrast
-  readonly property string ink: Rice.cfg.ink
+  readonly property color ink: Theme.c("#FF2A3A")
   property int rotateMinutes: 10
   property string wallFont: Theme.wall
 
@@ -100,8 +101,9 @@ PanelWindow {
       // true Borjgali (Wikimedia path): each arm is a crescent between two cubics. Lanes of text run
       // from the centre to the tip, parallel to the arm's midline, filling the crescent.
       const bez = (p, t) => { const u = 1 - t; return [u*u*u*p[0][0] + 3*u*u*t*p[1][0] + 3*u*t*t*p[2][0] + t*t*t*p[3][0], u*u*u*p[0][1] + 3*u*u*t*p[1][1] + 3*u*t*t*p[2][1] + t*t*t*p[3][1]] };
-      const inner = [[-10.294, 244.024], [-120.274, 194.616], [-114.952, 47.723], [-1.21, -0.128]];   // tip → centre
-      const outer = [[-1.21, -0.128], [-182.399, -29.113], [-187.058, 257.58], [-10.294, 244.024]];  // centre → tip
+      // mirrored (x negated): blades face left, and it turns left like the bar's and the lock's
+      const inner = [[10.294, 244.024], [120.274, 194.616], [114.952, 47.723], [1.21, -0.128]];   // tip → centre
+      const outer = [[1.21, -0.128], [182.399, -29.113], [187.058, 257.58], [10.294, 244.024]];  // centre → tip
       const K = 1.7 * shape / 100, F = Math.max(8, 13 * size / 100), N = 600, out = [];
       // crescent outline (design px) for point-in-shape tests, and the midline to run lanes along
       const poly = [], mid = [];
@@ -192,7 +194,7 @@ PanelWindow {
     running: root.anim !== "none" || (root.mode === "borj" && root.spin > 0)
     onTriggered: {
       root.t = Date.now() / 1000 % 100000;
-      spinner.rotation = root.mode === "borj" ? (spinner.rotation + 0.033 * (root.spin / 100) * 0.08 * 180 / Math.PI) % 360 : 0;
+      spinner.rotation = root.mode === "borj" ? (spinner.rotation - 0.033 * (root.spin / 100) * 0.08 * 180 / Math.PI) % 360 : 0;
     }
   }
   Timer {
@@ -310,8 +312,6 @@ PanelWindow {
       x: (root.width - width) / 2; y: 0
       id: spinner
       rotation: 0
-      // turns around the vertical axis as far as it turns in its plane (like the bar's and the lock's)
-      transform: Rotation { origin { x: spinner.width / 2; y: spinner.height / 2 } axis { x: 0; y: 1; z: 0 } angle: spinner.rotation }
       Item {
         anchors.fill: parent
         layer.enabled: true; layer.smooth: true
@@ -323,17 +323,16 @@ PanelWindow {
         Text {
           required property var modelData
           readonly property real l: root.anim === "wave" ? root.lightOf(modelData) : root.restOf(modelData)
-          readonly property bool red: root.ink === "r" || (root.ink === "wr" && modelData.i % 9 === 0)
           text: modelData.ch
           font.family: root.wallFont
           font.pixelSize: Math.max(1, modelData.size * root.s)
           x: modelData.x * root.s - width / 2
           y: modelData.y * root.s - height / 2
           rotation: modelData.rot
-          color: l > 0 ? Qt.rgba(1, 1, 1, 0.55 + l * 0.45)
-                       : red ? Theme.alpha(Theme.c("#FF2A3A"), -l) : Qt.rgba(248 / 255, 244 / 255, 236 / 255, -l)
+          color: l > 0 ? Theme.alpha(root.hi, 0.55 + l * 0.45)
+                       : Theme.alpha(root.ink, -l)
           style: l > 0.6 ? Text.Outline : Text.Normal
-          styleColor: Qt.rgba(1, 1, 1, 0.25)
+          styleColor: Theme.alpha(root.hi, 0.25)
         }
       }
         }
@@ -356,9 +355,9 @@ PanelWindow {
           x: g ? g.x * root.s - width / 2 : 0
           y: g ? g.y * root.s - height / 2 : 0
           rotation: g ? g.rot : 0
-          color: Qt.rgba(1, 1, 1, 0.55 + l * 0.45)
+          color: Theme.alpha(root.hi, 0.55 + l * 0.45)
           style: l > 0.6 ? Text.Outline : Text.Normal
-          styleColor: Qt.rgba(1, 1, 1, 0.25)
+          styleColor: Theme.alpha(root.hi, 0.25)
         }
       }
       }

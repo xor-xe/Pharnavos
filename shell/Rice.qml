@@ -81,9 +81,10 @@ Singleton {
       property int size: 100
       property int shape: 100           // size of the Borjgali / head itself
       property int contrast: 52
-      property string ink: "r"          // w | wr | r
+      property string hi: "#FFFFFF"     // the lit letters (reading light, shimmer): "theme" or #RRGGBB (Theme.wallInk)
       property bool glow: true          // the dim red glow behind the wallpaper
-      property string theme: "crimson"  // crimson | blue | gold | green (Theme.c)
+      property string theme: "crimson"  // crimson | blue | gold | green | #RRGGBB (Theme.c, Theme.own)
+      property string ownTheme: ""      // the last own colour typed, so its pill can pick it again
       property bool awake: false
       property string lockLook: "random"  // random | giorgi | flag | borj
       property string clockFmt: "24"       // 24 | ka (12h + დილის/შუადღის/საღამოს/ღამის) | ampm

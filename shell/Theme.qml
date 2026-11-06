@@ -18,7 +18,13 @@ Singleton {
                                  ["blue", Rice.t("შავი ზღვა", "Black Sea"), "#3D9BE9", 0.575, 0.8, "#72D2EE", "#9AA8FF"],
                                  ["gold", Rice.t("ჭურჭელი", "Golden"), "#E3BE55", 0.13, 0.7, "#F2DB92", "#D0607A"],
                                  ["green", Rice.t("მინდორი", "Grassland"), "#62D87C", 0.37, 0.6, "#A6EBB0", "#B98BE0"]]
-  readonly property var theme: themes.find(t => t[0] === Rice.cfg.theme) ?? themes[0]
+  // or your own colour (theme "#RRGGBB"): its hue and saturation, the rose a lighter, calmer tint of it and
+  // the pink the hue next door, at the lightness the shipped themes use. A grey gives a colourless shell
+  readonly property var theme: /^#[0-9A-Fa-f]{6}$/.test(Rice.cfg.theme ?? "") ? own(Rice.cfg.theme) : themes.find(t => t[0] === Rice.cfg.theme) ?? themes[0]
+  function own(col) {
+    const q = Qt.lighter(col, 1), h = Math.max(0, q.hslHue), s = q.hslSaturation;
+    return [col, "", col, h, s, Qt.hsla(h, s * 0.85, 0.72, 1), Qt.hsla((h + 0.08) % 1, s * 0.65, 0.66, 1)];
+  }
   readonly property real hue: theme[3]
   function c(col) {
     const q = Qt.lighter(col, 1), h = q.hslHue;
@@ -26,6 +32,8 @@ Singleton {
     return Qt.hsla(hue, q.hslSaturation * theme[4], q.hslLightness, q.a);
   }
   function alpha(col, a) { return Qt.rgba(col.r, col.g, col.b, a) }
+  // the wallpaper's highlight colour from settings: "theme" follows the theme, else #RRGGBB
+  function wallInk(v) { return /^#[0-9A-Fa-f]{6}$/.test(v ?? "") ? v : c("#FF2A3A") }
   readonly property color red: c("#FF3B3B")    // the accent ("red" from before there were themes)
   // window borders and their glow follow the theme (only while they're Pharnavos's own: PHARNAVOS_BORDERS);
   // again after a Hyprland config reload, which puts the configured ones back
@@ -40,7 +48,7 @@ Singleton {
     paintP.running = true;
   }
   Process { id: paintP }
-  onHueChanged: Qt.callLater(paint)   // after the colours that hang on the hue have caught up
+  onThemeChanged: Qt.callLater(paint)   // after the colours that hang on the theme have caught up
   Connections { target: Rice; function onHyprLuaChanged() { root.paint() } }
   Connections { target: Hyprland; function onRawEvent(e) { if (e.name === "configreloaded") root.paint() } }
   Component.onCompleted: paint()
