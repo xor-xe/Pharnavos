@@ -9,6 +9,7 @@ Item {
   property real level: 0          // 0..100
   property string icon: ""        // SVG path in a 24×24 box, stamped into the clay
   property string glyph: ""       // or a letter on the belly instead: an SVG path in the 16×24 box
+  property color glyphWet: "#FFFFFF"   // the letter's colour where the wine covers it (black on a pale wine)
   property color wine: Theme.c("#B0151F")
   property color hot: Theme.c("#FF3B3B")
   property bool alarm: level > 85   // the wine turns hot red
@@ -70,11 +71,22 @@ Item {
     Stamp { ink: "#070607"; y: 6.6 - (q.height - parent.height) }
   }
 
-  // the letter on the belly: a filled vector outline in the jar's 16×24 box (stays sharp when scaled)
+  // the letter on the belly: a filled vector outline in the jar's 16×24 box (stays sharp when scaled);
+  // white above the wine, glyphWet below it: one shape, its gradient changing colour at the wine line
+  property real wineTop: 1 - fillHeight(level)
+  Behavior on wineTop { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
   Shape {
     visible: q.glyph !== ""
     anchors.fill: parent; preferredRendererType: Shape.CurveRenderer
-    ShapePath { fillColor: "#FFFFFF"; strokeWidth: 0; strokeColor: "transparent"; PathSvg { path: q.glyph } }
+    ShapePath {
+      strokeWidth: 0; strokeColor: "transparent"
+      fillGradient: LinearGradient {
+        x1: 0; y1: 0; x2: 0; y2: q.height
+        GradientStop { position: q.wineTop; color: "#FFFFFF" }
+        GradientStop { position: Math.min(1, q.wineTop + 0.002); color: q.glyphWet }   // a hair apart: equal stops collapse into one
+      }
+      PathSvg { path: q.glyph }
+    }
   }
 
   // the rim drawn on top so the mouth stays crisp

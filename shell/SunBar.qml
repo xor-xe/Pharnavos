@@ -402,11 +402,11 @@ PanelWindow {
           anchors.centerIn: parent; spacing: 10
           Repeater {
             // პროცესორი and მეხსიერება, by their first letters; the numbers are on hover
-            model: [[root.jarLetter[Rice.t("პ", "C")], Sys.cpu, Theme.c("#B0151F")], [root.jarLetter[Rice.t("მ", "M")], Sys.ram, Theme.c("#C9C1C4")]]
+            model: [[root.jarLetter[Rice.t("პ", "C")], Sys.cpu, Theme.c("#B0151F")], [root.jarLetter[Rice.t("მ", "M")], Sys.ram, Theme.c("#C9C1C4"), "#070607"]]
             Item {
               required property var modelData
               width: 17; height: 26
-              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; glyph: parent.modelData[0]; scale: 1.05; glow: true }
+              Qvevri { anchors.centerIn: parent; level: parent.modelData[1]; wine: parent.modelData[2]; glyph: parent.modelData[0]; glyphWet: parent.modelData[3] ?? "#FFFFFF"; scale: 1.05; glow: true }
             }
           }
         }
