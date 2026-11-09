@@ -485,7 +485,7 @@ PanelWindow {
                     required property var modelData
                     readonly property bool on: (Rice.cfg.theme || "crimson") === modelData[0]
                     width: swRow.width + 24; height: 30; hoverEnabled: true
-                    onClicked: { Rice.cfg.theme = modelData[0]; ownHex.focus = false }
+                    onClicked: Rice.cfg.theme = modelData[0]
                     Rectangle { anchors.fill: parent; radius: 15; color: "transparent"; border { width: sw.on ? 2 : 1; color: sw.on ? sw.modelData[2] : sw.containsMouse ? Theme.c("#5A4E53") : cc.line } }
                     Row {
                       id: swRow
@@ -496,29 +496,10 @@ PanelWindow {
                   }
                 }
                 // your own colour: the rest of the theme is worked out from it (Theme.own)
-                Rectangle {
-                  readonly property bool on: /^#/.test(Rice.cfg.theme ?? "")
-                  width: 104; height: 30; radius: 15; color: "transparent"
-                  border { width: on ? 2 : 1; color: on ? Theme.red : ownM.containsMouse ? Theme.c("#5A4E53") : cc.line }
-                  // a click anywhere on the pill picks the colour already in it (the last one you typed)
-                  MouseArea { id: ownM; anchors.fill: parent; hoverEnabled: true; onClicked: ownHex.forceActiveFocus() }
-                  Rectangle { x: 10; anchors.verticalCenter: parent.verticalCenter; width: 14; height: 14; radius: 7; color: /^#[0-9A-Fa-f]{6}$/.test(Rice.cfg.ownTheme) ? Rice.cfg.ownTheme : cc.grey }
-                  // the # is a label in front, so it can't be deleted; the box holds the six digits
-                  Text { anchors { right: ownHex.left; verticalCenter: parent.verticalCenter } text: "#"; color: cc.grey; font: ownHex.font }
-                  TextInput {
-                    id: ownHex
-                    anchors { fill: parent; leftMargin: 40; rightMargin: 8 }
-                    verticalAlignment: TextInput.AlignVCenter; clip: true; maximumLength: 6
-                    color: cc.cream; font { family: Theme.mono; pixelSize: 12 }
-                    Component.onCompleted: text = (Rice.cfg.ownTheme || (/^#/.test(Rice.cfg.theme) ? Rice.cfg.theme : "")).slice(1)
-                    // focus in: pick the colour in the box; focus out half-typed: the last whole colour comes back
-                    onActiveFocusChanged: {
-                      if (activeFocus && text.length === 6) Rice.cfg.theme = "#" + text.toUpperCase();
-                      else if (!activeFocus && text.length !== 6) text = (Rice.cfg.ownTheme || "").slice(1);
-                    }
-                    validator: RegularExpressionValidator { regularExpression: /[0-9A-Fa-f]{0,6}/ }
-                    onTextEdited: if (text.length === 6) Rice.cfg.theme = Rice.cfg.ownTheme = "#" + text.toUpperCase()
-                  }
+                OwnColour {
+                  current: Rice.cfg.theme
+                  saved: Rice.cfg.ownTheme || (/^#/.test(Rice.cfg.theme) ? Rice.cfg.theme : "")
+                  onOwn: v => { Rice.cfg.theme = v; Rice.cfg.ownTheme = v }
                 }
               }
             }
@@ -617,7 +598,7 @@ PanelWindow {
               Slide { label: Rice.t("ფორმის ზომა ", "Shape size ") + Rice.cfg.shape + "%"; value: (Rice.cfg.shape - 40) / 90; onMoved: v => Rice.cfg.shape = Math.round(40 + v * 90) }
               Slide { label: Rice.t("ასოს ზომა ", "Letter size ") + Rice.cfg.size + "%"; value: (Rice.cfg.size - 40) / 210; onMoved: v => Rice.cfg.size = Math.round(40 + v * 210) }
               Slide { visible: wallTab.wm !== "borj"; label: Rice.t("ვაჟას შაბლონი ", "Vazha stencil ") + Rice.cfg.contrast + "%"; value: (Rice.cfg.contrast - 25) / 50; onMoved: v => Rice.cfg.contrast = Math.round(25 + v * 50) }
-              ColourRow { label: Rice.t("შუქი", "Highlight"); value: Rice.cfg.hi; onPicked: v => Rice.cfg.hi = v }
+              ColourRow { label: Rice.t("შუქი", "Highlight"); value: Rice.cfg.hi; saved: Rice.cfg.ownHi; onPicked: v => Rice.cfg.hi = v; onOwn: v => { Rice.cfg.hi = v; Rice.cfg.ownHi = v } }
             }
           }
         }
@@ -657,13 +638,14 @@ PanelWindow {
     Text { id: btnT; anchors.centerIn: parent; text: parent.text; color: cc.cream; font { family: Theme.sans; pixelSize: 12; bold: true } }
   }
 
-  // a wallpaper colour: the theme's own, a few fixed ones, or any #RRGGBB typed in the box
+  // a wallpaper colour: the theme's own, a few fixed ones, or your own
   component ColourRow: Row {
     id: cr
     property string label
     property string value
+    property string saved
     signal picked(string v)
-    readonly property color shown: Theme.wallInk(value)
+    signal own(string v)
     spacing: 8
     Text { width: 64; anchors.verticalCenter: parent.verticalCenter; text: cr.label; color: cc.grey; font { family: Theme.sans; pixelSize: 12; bold: true } }
     Repeater {
@@ -673,27 +655,41 @@ PanelWindow {
         required property string modelData
         readonly property bool on: cr.value.toUpperCase() === modelData.toUpperCase()
         width: 26; height: 26; hoverEnabled: true
-        onClicked: { hex.focus = false; cr.picked(modelData) }
+        onClicked: cr.picked(modelData)
         Rectangle { anchors.fill: parent; radius: 13; color: "transparent"; border { width: sw.on ? 2 : 1; color: sw.on ? cc.cream : sw.containsMouse ? Theme.c("#5A4E53") : "transparent" } }
         Rectangle { anchors.centerIn: parent; width: 16; height: 16; radius: 8; color: Theme.wallInk(sw.modelData) }
       }
     }
-    Rectangle {
-      width: 104; height: 26; radius: 6; color: "transparent"; border.color: hex.activeFocus ? cc.red : cc.line
-      Rectangle { x: 8; anchors.verticalCenter: parent.verticalCenter; width: 12; height: 12; radius: 6; color: cr.shown }
-      Text { anchors { right: hex.left; verticalCenter: parent.verticalCenter } text: "#"; color: cc.grey; font: hex.font }
-      TextInput {
-        id: hex
-        anchors { fill: parent; leftMargin: 34; rightMargin: 6 }
-        verticalAlignment: TextInput.AlignVCenter; clip: true; maximumLength: 6
-        color: cc.cream; font { family: Theme.mono; pixelSize: 12 }
-        // set, not bound: typing would break a binding and the box would stop following the swatches
-        Component.onCompleted: text = cr.shown.toString().slice(1).toUpperCase()
-        Connections { target: cr; function onShownChanged() { if (!hex.activeFocus) hex.text = cr.shown.toString().slice(1).toUpperCase() } }
-        onActiveFocusChanged: if (!activeFocus) text = cr.shown.toString().slice(1).toUpperCase()   // half-typed: back to the colour in use
-        validator: RegularExpressionValidator { regularExpression: /[0-9A-Fa-f]{0,6}/ }
-        onTextEdited: if (text.length === 6) cr.picked("#" + text.toUpperCase())
+    OwnColour { anchors.verticalCenter: parent.verticalCenter; current: cr.value; saved: cr.saved; onOwn: v => cr.own(v) }
+  }
+
+  // your own colour as a pill, the same for the theme and the wallpaper highlight: type six hex digits
+  // (the # can't be deleted); a click on the pill picks the last one typed again; leaving it half-typed
+  // brings that one back
+  component OwnColour: Rectangle {
+    id: oc
+    property string current
+    property string saved
+    signal own(string v)
+    readonly property bool on: /^#[0-9A-Fa-f]{6}$/.test(saved) && current.toUpperCase() === saved.toUpperCase()
+    onOnChanged: if (!on) ocHex.focus = false
+    width: 104; height: 30; radius: 15; color: "transparent"
+    border { width: on ? 2 : 1; color: on ? Theme.red : ocM.containsMouse ? Theme.c("#5A4E53") : cc.line }
+    MouseArea { id: ocM; anchors.fill: parent; hoverEnabled: true; onClicked: ocHex.forceActiveFocus() }
+    Rectangle { x: 10; anchors.verticalCenter: parent.verticalCenter; width: 14; height: 14; radius: 7; color: /^#[0-9A-Fa-f]{6}$/.test(oc.saved) ? oc.saved : cc.grey }
+    Text { anchors { right: ocHex.left; verticalCenter: parent.verticalCenter } text: "#"; color: cc.grey; font: ocHex.font }
+    TextInput {
+      id: ocHex
+      anchors { fill: parent; leftMargin: 40; rightMargin: 8 }
+      verticalAlignment: TextInput.AlignVCenter; clip: true; maximumLength: 6
+      color: cc.cream; font { family: Theme.mono; pixelSize: 12 }
+      Component.onCompleted: text = oc.saved.slice(1)
+      onActiveFocusChanged: {
+        if (activeFocus && text.length === 6) oc.own("#" + text.toUpperCase());
+        else if (!activeFocus && text.length !== 6) text = oc.saved.slice(1);
       }
+      validator: RegularExpressionValidator { regularExpression: /[0-9A-Fa-f]{0,6}/ }
+      onTextEdited: if (text.length === 6) oc.own("#" + text.toUpperCase())
     }
   }
 
